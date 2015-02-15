@@ -7,7 +7,7 @@ Historia uses HTTPS for all connections, and therefore uses a certificate. By de
 
 Starting Historia
 =================
-Historia uses a built-in web server, and currently has no configuration (something that will change soon). To start the web server on a local machine simply browse to the historia/src folder in a command line window and run ./historia.  Then in your web browser open: http://localhost:8080/historia
+Historia uses a built-in web server, and currently has no configuration (something that will change soon). To start the web server on a local machine simply browse to the historia/src folder in a command line window and run ./historia.  Then in your web browser open: https://localhost:8080/historia
 
 Requirements
 ============

@@ -50,15 +50,19 @@ class HistoriaServer(object):
         
         HistoriaHTTPHandler.setcontroller(self.controller)
                 
+        print("HTTPS Server starting up on port: {0}".format(port))
         self.server = http.server.HTTPServer(('', int(port)), HistoriaHTTPHandler)
-        print("HTTP Server starting up on port: {0}".format(port))
+        self.server.socket = ssl.wrap_socket(self.server.socket,
+                                       server_side=True,
+                                       certfile='../ssl_cert/historia.pem',
+                                       ssl_version=ssl.PROTOCOL_TLSv1)
         
         # self.server_thread = threading.Thread(target=self.server.serve_forever)
         # self.server_thread.setDaemon(True)
         # self.server_thread.start()
         
-        print("HTTP Server running on port: {0}".format(port))
         self.running = True
+        print("HTTP Server running on port: {0}".format(port))
         self.server.serve_forever()
         
         

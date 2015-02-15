@@ -1,0 +1,380 @@
+/** 
+Copyright: Aaron Crosman 2015
+
+Default Layout: 992px. 
+Outer margins: 48px.
+**/
+/*	Resets
+	------	*/
+
+html, body, div, span, object, iframe, h1, h2, h3, h4, h5, h6, 
+p, blockquote, pre, a, abbr, address, cite, code, del, dfn, em, 
+img, ins, kbd, q, samp, small, strong, sub, sup, var, b, i, hr, 
+dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, 
+tbody, tfoot, thead, tr, th, td, article, canvas, details, hgroup, 
+menu, footer, header, nav, section, summary, time, mark, note, 
+source, project, creator {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+article, canvas, figure, footer, header, nav, section, note, source, 
+project, creator, header, section, footer, nav, article, figure, label {
+	display: block;
+}
+
+a img {border: 0;}
+
+a:hover, a:active, a:focus { /* give a keyboard user the same experience as with a mouse. */
+	text-decoration: none;
+}
+
+.hide {
+	display: none;
+}
+
+/* Positioning for Index lists */
+div.id {
+	display: block;
+	float: left;
+	padding-left: 5px;
+	margin-right: 10px;
+}
+
+div.historiasummary {
+	display: inline;
+}
+
+.jq_template{
+	display:block;
+	width:250 px;
+}
+
+.jq_template input{
+	float: left;
+}
+
+/*	Typography presets
+	------------------	*/
+
+.gigantic {
+	font-size: 116px;
+	line-height: 120px;
+	letter-spacing: -2px;
+}
+
+.huge, h1 {
+	font-size: 60px;
+	line-height: 72px;
+	letter-spacing: -1px;
+}
+
+.large, h2 {
+	font-size: 44px;
+	line-height: 48px;
+}
+
+.bigger, h3 {
+	font-size: 28px;
+	line-height: 36px;
+}
+
+.big, h4 {
+	font-size: 24px;
+	line-height: 30px;
+}
+
+.small, small {
+	font-size: 13px;
+	line-height: 18px;
+}
+
+/* General defaults include font and background color*/
+body {
+	background: #999999;
+	font-family: Helvetica, Arial, sans-serif;
+}
+p {
+	margin-bottom: 5px;
+}
+
+strong,
+h1, h2, h3, 
+nav, #navbar a {
+	font-family: "Franklin Gothic Medium", Helvetica, sans-serif;
+	font-weight: normal;
+}
+
+
+/* Link Colors */
+a:link { color: #FFF; }
+a:visited { color: #4572B3; }
+a:hover { color: #DDD; }
+
+
+/* Button styles */
+.button {
+    background-color: #EE2000;
+    border: 0;
+    border-radius: 1em;
+    cursor: pointer;
+    display: inline-block;
+    opacity: 0.9;
+    padding: 0.15em 0.8em;
+	margin-top: 5px;
+	margin-left: 10px;
+	text-align: center;
+}
+
+a.button:link,
+a.button:visited,
+a.button:hover { 
+	color:#FFF;
+	opacity: 1; 
+}
+
+/* General Layout
+   -------------- */
+
+.clearfloat {
+	clear:both;
+	height:0;
+	font-size: 1px;
+	line-height: 0px;
+}
+
+/* ~~ This fixed width container surrounds all blocks ~~ */
+.container {
+	width: 960px;
+	background: #FFFFFF;
+	margin: 0 auto; /* the auto value on the sides, coupled with the width, centers the layout */
+}
+
+/* Header
+   ------ */
+header {
+	background: #F4F0EA;
+	padding-top: 1em;
+}
+
+header a{
+	text-decoration: none;
+}
+
+header h1 {
+	color: #333;
+}
+
+/* Body 
+   ----*/
+
+body {
+	padding: 0;
+	margin: 0 auto;
+	-webkit-text-size-adjust: 100%; /* Stops Mobile Safari from auto-adjusting font-sizes */
+	position: relative;
+}
+
+/* Navbar
+   ------ */
+nav {
+	background: #730000;
+	color: #EEE;
+}
+
+/* other style overrides for header and navbar */
+nav, header {
+	padding: 0.2em 0;
+	clear:both;
+}
+header {
+}
+
+nav ul {
+	list-style: none; 
+	margin-bottom: 15px;
+	padding: 0 1em;
+}
+nav ul li {
+	display: inline;
+}
+
+nav ul a, nav ul a:visited {
+	padding: 5px 5px 5px 15px;
+	text-decoration: none;
+	color: #FFF;
+}
+/* this changes the background and text color for both mouse and keyboard 
+navigators */
+nav ul a:hover, nav ul a:active, nav ul a:focus { 
+	background: #ADB96E;
+	color: #FFF;
+}
+
+#project_nav ul {
+	list-style: none;
+}
+
+/* Main Section Layout
+   ------------------- */
+   
+/* ~~ These are areas within the page that contain various parts controls.  
+Most important is MainPanel were the main content goes. This sets the default
+behavior, which is sometimes overriden for specific page layouts. ~~ */
+#leftsidebar {
+	float: left;
+	width: 160px;
+	padding-bottom: 10px;
+	padding-right: 5px;
+}
+#mainPanel {
+	padding: 10px 0;
+	width: 575px;
+	float: left;
+}
+#rightsidebar {
+	float: left;
+	width: 380px;
+	padding: 10px 0;
+}
+
+/* Set primary background colors */
+#leftsidebar {
+	background: #EADCAE;
+}
+
+#mainPanel {
+	background: #EEEEEE;
+}
+
+#rightsidebar {
+	background: #EADCAE;
+}
+
+/* default list spacing */
+#mainPanel ul, #mainPanel ol {
+	padding: 0 15px 15px 40px;
+}
+
+ul.links li {
+    padding: 0 1em;
+}
+
+/* Note Page Spacing Overrides */
+#NoteIndex #mainPanel, #NotePanel #mainPanel, 
+#SourceIndex #mainPanel, #SourcePanel #mainPanel {
+	width: 795px;
+}
+
+/* Form Layout controls */
+#NoteEdit, #SourceEdit{
+	margin: 10px;
+}
+
+.right_col {
+	float: right;
+}
+
+.creator_name
+{
+	width: 10em;
+}
+.creator_suffix
+{
+	width: 7em;
+}
+.creator_role
+{
+	width: 8em;
+}
+
+.medium_form_width
+ {
+	width: 30em;
+}
+
+.large_form_width
+ {
+	width: 40em;
+}
+
+label {
+	margin-top: 10px;
+}
+
+th {
+	font-weight: normal;
+	font-style: italic;
+	font-size: small;
+}
+
+
+/* Source Editor Layout */
+#Source_Creators {
+	margin-bottom: 15px
+}
+
+
+/* Footer
+   ------ */
+#footer, footer {
+	background: #CCC49F;
+	position: relative;/* this gives IE6 hasLayout to properly clear */
+	clear: both; /* this clear property forces the .container to understand where the columns end and contain them */
+	overflow: hidden;
+	color: #FFF;
+	padding: 10px 48px;
+	margin: 0 auto;
+	
+	outline: 1px solid silver; /* debugging */
+	outline: none; /* off */
+}
+
+/* FROM https://proto.io/freebies/onoff/ */
+.onoffswitch {
+position: relative; width: 90px;
+-webkit-user-select:none; -moz-user-select:none; -ms-user-select: none;
+}
+.onoffswitch-checkbox {
+display: none;
+}
+.onoffswitch-label {
+display: block; overflow: hidden; cursor: pointer;
+border: 2px solid #999999; border-radius: 20px;
+}
+.onoffswitch-inner {
+display: block; width: 200%; margin-left: -100%;
+-moz-transition: margin 0.3s ease-in 0s; -webkit-transition: margin 0.3s ease-in 0s;
+-o-transition: margin 0.3s ease-in 0s; transition: margin 0.3s ease-in 0s;
+}
+.onoffswitch-inner:before, .onoffswitch-inner:after {
+display: block; float: left; width: 50%; height: 30px; padding: 0; line-height: 30px;
+font-size: 14px; color: white; font-family: Trebuchet, Arial, sans-serif; font-weight: bold;
+-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;
+}
+.onoffswitch-inner:before {
+content: "GET";
+padding-left: 10px;
+background-color: #34A7C1; color: #FFFFFF;
+}
+.onoffswitch-inner:after {
+content: "POST";
+padding-right: 10px;
+background-color: #E80909; color: #F0E8E8;
+text-align: right;
+}
+.onoffswitch-switch {
+display: block; width: 18px; margin: 6px;
+background: #FFFFFF;
+border: 2px solid #999999; border-radius: 20px;
+position: absolute; top: 0; bottom: 0; right: 56px;
+-moz-transition: all 0.3s ease-in 0s; -webkit-transition: all 0.3s ease-in 0s;
+-o-transition: all 0.3s ease-in 0s; transition: all 0.3s ease-in 0s;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+margin-left: 0;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
+right: 0px;
+}

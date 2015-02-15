@@ -1,0 +1,11 @@
+<section id="historiaMainContent">
+  <nav>
+    <ul>
+      <li id="nav_welcome" ng-class="{ active:tab.isSet(1) }"><a href ng-click="tab.setTab(1)">Overview</a></li>
+      <li id="nav_explore" ng-class="{ active:tab.isSet(2) }"><a href ng-click="tab.setTab(2)">Testing</a></li>
+    </ul>
+  </nav>
+
+  <welcome-page ng-show="tab.isSet(1)"></welcome-page>
+  <test-page ng-show="tab.isSet(2)"></test-page>
+</section>

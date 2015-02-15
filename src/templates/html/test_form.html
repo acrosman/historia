@@ -1,0 +1,60 @@
+<div id="TestFormWrapper" ng-controller="SubmissionController as submission">
+  <div id="mainPanel">
+    <h1>Historia Test Form</h1>
+      <p>This form allows you to customize a submission to Historia to submit and pull data.</p>
+      <!--  Test parameters List -->
+        <div id="parameters_list">
+          <h4>Parameters</h4>
+          <table>
+            <tr>
+              <th>Name</th>
+              <th>Value</th>
+            </tr>
+            <tr ng-repeat="param in submission.parameters">
+              <td><strong>{{param.name}}</strong></td>
+              <td><strong>{{param.value}}</strong></td>
+            </tr>
+          </table>
+          <a href ng-click="submission.reset_params()">Reset Parameters</a>
+        </div>
+
+      <!--  Parameter Form -->
+      <form name="paramForm" ng-controller="ParameterController as paramCtrl" ng-submit="paramCtrl.addParameter(submission)">
+        <h4>Add Parameter</h4>
+        <fieldset class="form-group">
+          <input ng-model="paramCtrl.parameter.name" type="text" class="form-control" placeholder="parameter name" title="Name"/>
+        </fieldset>
+        <fieldset class="form-group">
+          <input ng-model="paramCtrl.parameter.value" type="text" class="form-control" placeholder="parameter value" title="Value" />
+        </fieldset>
+        <fieldset class="form-group">
+          <input type="submit" class="btn btn-primary pull-right" value="Add Parameter" />
+        </fieldset>
+      </form>
+      <form name="submissionForm" ng-submit="submission.send_request()">
+        <input ng-model="submission.targetUrl" type="text" name="targetUrl" id="targetUrl" placeholder="historia URL" title="URL" >
+        <div class="onoffswitch"> <!-- Generated at  https://proto.io/freebies/onoff/ -->
+        <input type="checkbox" name="onoffswitch" ng-model="submission.method" class="onoffswitch-checkbox" id="myonoffswitch" checked>
+        <label class="onoffswitch-label" for="myonoffswitch">
+        <span class="onoffswitch-inner"></span>
+        <span class="onoffswitch-switch"></span>
+        </label>
+        </div>
+        <br>
+        <input type="submit" name="send_btn" id="send_btn" value="Send">
+        </form>
+  </div><!-- end #mainPanel -->
+  <div id="rightsidebar">
+    <h3>Response Headers:</h3>
+    <div id="response_header">
+      <div><strong>URL:</strong>{{submission.lastHeaders.url}}</div>
+      <div><strong>Date:</strong>{{submission.lastHeaders.date}}</div>
+      <div><strong>Status:</strong>{{submission.lastHeaders.status}}</div>
+      <div><strong>Server:</strong>{{submission.lastHeaders.server}}</div>
+    </div>
+    <h3>Response Body:</h3>
+    <div id="response_body">
+      <pre>{{submission.lastResponse}}</pre>
+    </div>
+  </div>
+</div><!-- end TestFormWrapper -->

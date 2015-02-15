@@ -56,6 +56,11 @@ class TypeMismatch(ControllerException):
     """Raised when an attempt is made to access an object of the wrong type."""
     pass
 
+class ConfigurationLoadError(ControllerException):
+    """Raised when an attempt is made to load the configuration as it fails."""
+    pass
+
+
 ###############################################################################
 ##               Web Interface Exceptions
 ###############################################################################

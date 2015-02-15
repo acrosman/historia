@@ -45,12 +45,11 @@ class HistoriaServer(object):
         # self.ServerCount = 5
         
         # Get the port number from the controller's settings.
-        port = self.controller.interface_settings['port']
+        port = self.controller.config['server']['port']
         
         
         HistoriaHTTPHandler.setcontroller(self.controller)
                 
-        print("HTTPS Server starting up on port: {0}".format(port))
         self.server = http.server.HTTPServer(('', int(port)), HistoriaHTTPHandler)
         self.server.socket = ssl.wrap_socket(self.server.socket,
                                        server_side=True,
@@ -62,7 +61,6 @@ class HistoriaServer(object):
         # self.server_thread.start()
         
         self.running = True
-        print("HTTP Server running on port: {0}".format(port))
         self.server.serve_forever()
         
         

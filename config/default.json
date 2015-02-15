@@ -1,8 +1,65 @@
 {
-  'database': {
-    'user': 'historia',
-    'password': 'historia',
-    'host': '127.0.0.1',
-    'database':"histora_db"
+  "database": {
+    "user": "historia",
+    "password": "historia",
+    "host": "127.0.0.1",
+    "main_database":"histora_db",
+    "user_database_name_prefix":"historia"
+  },
+  "server": {
+    "port": 443,
+    "cert_file": "../ssl_cert_/historia.pem"
+  },
+  "logging":{
+    "version":1,
+    "handlers":{
+      "console": {
+          "class": "logging.StreamHandler",
+          "level": "DEBUG",
+          "formatter": "default",
+          "stream": "sys.stderr"
+      },
+      "error_file_handler": {
+          "class": "logging.handlers.RotatingFileHandler",
+          "level": "ERROR",
+          "formatter": "default",
+          "filename": "../logs/historia_errors.log",
+          "maxBytes": 10485760,
+          "backupCount": 10,
+          "encoding": "utf8"
+      },
+      "access_file_handler": {
+          "class": "logging.handlers.RotatingFileHandler",
+          "level": "INFO",
+          "formatter": "default",
+          "filename": "../logs/historia_access.log",
+          "maxBytes": 10485760,
+          "backupCount": 10,
+          "encoding": "utf8"
+      }
+    },
+    "root": {
+      "level":"NOTSET",
+      "handlers" : ["console","error_file_handler","access_file_handler"]
+    },
+    "formatters": {
+      "default": {
+        "format": "%(asctime)s: %(name)s - %(levelname)s - %(message)s",
+        "datefmt": "%Y-%m-%d %H:%M:%S"
+      }
+    },
+    "filters": {},
+    "loggers": {
+      "historia.ctrl":{
+        "level":"ERROR",
+        "handlers" : ["error_file_handler","access_file_handler"]
+      },
+      "historia.db":{
+        "level":"ERROR",
+        "handlers" : ["error_file_handler","access_file_handler"]
+      }
+    },
+    "incremental": false,
+    "disable_existing_loggers": false
   }
 }

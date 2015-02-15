@@ -40,20 +40,22 @@ __maintainer__ = "Aaron Crosman"
 __status__ = "Pre-Alpha"
 
 
-settingsLocation = None
-
 def historia_version():
     """Print historia and python version information."""
     v_string = "{0} maintained by {1}. Status: {2} \n\n".format(__version__, __maintainer__, __status__)
     return v_string
 
 parser = argparse.ArgumentParser(prog="Historia")
-parser.add_argument('-c','--config', help="The path to the configuration file to load for historia.")
+parser.add_argument('-c','--config', help="The path to the configuration files to load for historia. Historia will look for a default.json and a historia.json at the location; only default.json is required.")
 parser.add_argument('-v','--version', help="Print the version information for Historia and the local Python installation.", action="version", version='%(prog)s: ' + historia_version())
 
 args = parser.parse_args()
 
+settingsLocation = '../config'
 
-master_controller = HistoriaCoreController()
+if args.config is not None:
+    settingsLocation = args.config
+
+master_controller = HistoriaCoreController(settingsLocation)
 master_controller.setup_web_interface()
 master_controller.start_interface()

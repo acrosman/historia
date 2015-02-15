@@ -25,9 +25,10 @@ Created by Aaron Crosman on 2015-02-01
 
 """
 
-import sys, os
+import sys, os, os.path
 import datetime
-import logging
+import logging, logging.config
+import json
 
 from .exceptions import *
 
@@ -38,21 +39,10 @@ from .web import *
 
 class HistoriaCoreController(object):
     
-    def __new__(cls, *args):
-        """
-        The __new__ override provides the logger object for all child data 
-        objects in the system and forces a few shared assumptions about 
-        attributes.
-        """
-        obj = super(HistoriaCoreController, cls).__new__(cls)
-        obj.logger = logging.getLogger("historia.ctrl")
-        
-        return obj
-    
-    def __init__(self, database = None, interface = None):
-        self.database = database
-        self.interface = interface
-        
+    def __init__(self, config_location = '../config'):
+        self.config = {}
+        self.database = None
+        self.interface = None
         self.active_users = {}
         self.active_user_databases = {}
         
@@ -69,18 +59,59 @@ class HistoriaCoreController(object):
                 'load'  : 'load'
             }
         }
-        
         self.patterns = []
         self.request_patterns(reset=True)
         
-        self.interface_settings = {
-            'port': 8080
-        }
+        self.load_configuration(config_location)
+        
+    def load_configuration(self, file_location):
+        """Load the configuration files for Historia"""
+        default_file =  os.path.join(file_location,"default.json")
+        override_file =  os.path.join(file_location,"historia.json")
+        override_status = {}
+        
+        try:
+            with open(default_file, 'rt') as f:
+                base_config = json.load(f)
+        except Exception as err:
+            raise ConfigurationLoadError("Unable to load default.json configuration file in {0} triggered by {1}".format(file_location, err))
+        
+        try:
+            with open(override_file, 'rt') as f:
+                override_config = json.load(f)
+        except Exception as err:
+            override_status = { # we'll log this failure later, but since it's a reasonable condition continue
+                'Success': False,
+                'Message': "Failed to load configuration override file {0} due to {1}. This may be an expected result, conitnuing.".format(override_file, str(err))
+           }
+        else:
+           override_status = {
+                 'Success': True,
+                 'Message': "Override file loaded from {0}".format(override_file)
+           }
+        
+        self.config = self._deep_dict_merge(base_config, override_config)
+        
+        if self.config is None:
+            raise ConfigurationLoadError("Unable to load default.json configuration file in {0}. Resulting dictionary is empty".format(file_location))
+        
+        logging.config.dictConfig(self.config['logging'])
+        
+        self.logger = logging.getLogger('historia.ctrl')
+        
+        
+        if override_status['Success']:
+            self.logger.info(override_status['Message'])
+        else:
+            self.logger.warn(override_status['Message'])
+        
     
     def setup_web_interface(self):
+        self.logger.info("Setting up user interface.")
         self.interface = HistoriaServer()
     
     def start_interface(self):
+        self.logger.info("Starting interface.")
         self.interface.startup(self)
     
     def process_request(self, request_handler, session_id, object, request, parameters):
@@ -204,3 +235,18 @@ class HistoriaCoreController(object):
     def end_session(self, session_id):
         """End a given user's session, and close their database connection to free resources."""
         pass
+    
+    @staticmethod
+    def _deep_dict_merge(base_dict, update_dict):
+        """Inplace deep merge update_dict into base_dict. Intended as a deep version of update()"""
+        
+        for key in update_dict:
+            if key in base_dict:
+                if isinstance(update_dict[key], dict) and isinstance(base_dict[key], dict):
+                    HistoriaCoreController._deep_dict_merge(base_dict[key], update_dict[key])
+                else:
+                    base_dict[key] = update_dict[key]
+            else:
+                base_dict[key] = update_dict[key]
+        
+        return base_dict

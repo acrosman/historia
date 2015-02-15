@@ -57,3 +57,5 @@ target/
 ssl_cert/*.pem
 ssl_cert/*.key
 ssl_cert/*.crt
+test_historia.json
+historia.json

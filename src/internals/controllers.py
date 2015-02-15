@@ -94,7 +94,6 @@ class HistoriaCoreController(object):
             return
             
         
-        
     
     def process_login(self, parameters):
         return self.authorize_user(paramters['user'], parameters['password'])
@@ -177,6 +176,26 @@ class HistoriaCoreController(object):
         
         return sess
         
+    def reload_session(self, session_id, ip):
+        """Return a new session object"""
+        sess = session.HistoriaSession()
+        try:
+            sess.load(session_id)
+            if sess.ip != ip:
+                sess.ip = ip
+            sess.save() # reset the last_seen value in the database
+
+            self.logger.info("Loaded session with ID: {0}".format(session_id))
+        except DataLoadError as err:
+            self.logger.error('Unable to load session: {0}'.format(session_id))
+            raise err
+        except DataConnectionError as err:
+            self.logger.error('Unable to connect to database to load session: {0}'.format(session_id))
+            raise err
+        else:
+            return sess
+
+
     
     def validate_session(self, session_id):
         """Make sure the provided session is valid"""

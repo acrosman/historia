@@ -215,6 +215,9 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
             self.send_error(err.response_code, str(err))
             return
         
+        # Get the session from the cookies or a new session is needed.
+        session = self.setup_session()
+        
         # Send the welcome page
         if path_request[0] == 'home':
             self.send_home()
@@ -223,7 +226,7 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
         # For all other values we send the request to the controller for handling.
         else:
             query_parameters = urllib.parse.parse_qs(full_request[1]) if len(full_request) == 2 else {}
-            self.controller.process_request(self, None, path_request[0], path_request[1], query_parameters)
+            self.controller.process_request(self, session, path_request[0], path_request[1], query_parameters)
             
 
     def do_POST(self):
@@ -237,6 +240,10 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
         except HTTPException as err:
             self.send_error(err.response_code, str(err))
             return
+
+        # Get the session from the cookies or a new session is needed.
+        session = self.setup_session()
+
         
         try: 
             post_parameters = self.parse_POST()
@@ -244,7 +251,7 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
             self.log_error("Unhandled error processing posted data sent to {0}: {1}".format(self.path, str(err)))
             self.send_error(500, "Error processing posted values.")
             return
-        self.controller.process_request(self, None, path_request[0], path_request[1], post_parameters)
+        self.controller.process_request(self, session, path_request[0], path_request[1], post_parameters)
     
     
     def parse_POST(self):
@@ -262,7 +269,23 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
         
         return postvars
         
+    def setup_session(self):
+        """Check for cookies on the request and generate a new session if none found."""
+        # Get any Historia Cookies from the header
+        session_cookies = http.cookies.SimpleCookie()
+        if 'Cookie' in self.headers:
+            try:
+                session_cookies.load(self.headers['Cookie'])
+                if 'session' in session_cookies:
+                    session = self.controller.reload_session(session_cookies['session'])
+            except CookieError as err:
+                self.log_error('Error loading cookie. Resetting')
+                session_cookies = http.cookies.SimpleCookie()
         
+        if 'session' not in session_cookies:
+            session = self.controller.start_session(self.address_string())
+        
+        return session
     
     @classmethod
     def ValidateURL(cls, path):

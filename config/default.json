@@ -40,7 +40,7 @@
     },
     "root": {
       "level":"NOTSET",
-      "handlers" : ["console","error_file_handler","access_file_handler"]
+      "handlers" : ["console"]
     },
     "formatters": {
       "default": {

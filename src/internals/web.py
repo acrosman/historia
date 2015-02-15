@@ -224,7 +224,7 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
         self.log_message("Processing POST request %s", self.path)
         
         
-        processed = HistoriaHTTPHandler.ValidateURL(self.path, "POST")
+        processed = HistoriaHTTPHandler.ValidateURL(self.path)
         
         # If the ValidateURL failed, return the error
         # TODO: Think of a good way to handle error messages
@@ -261,11 +261,11 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
                     result = self._save_db_data(recType, recData)
                     self.log_message("Data saved to database")
                 except Error404 as err:
-                    self.log_error("Rejected post with a 404 during processing: %s", err.message)
-                    self.send_error(404, err.message)
+                    self.log_error("Rejected post with a 404 during processing: %s", err)
+                    self.send_error(404, err)
                 except Error403 as err:
-                    self.log_error("Rejected post with a 403 during processing: %s", err.message)                    
-                    self.send_error(403, err.message)
+                    self.log_error("Rejected post with a 403 during processing: %s", err)                    
+                    self.send_error(403, err)
                 else:
                     query_parameters = urllib.parse.parse_qs(full_request[1]) if len(full_request) == 2 else {}
                     self.controller.process_request(None, path_request[0], path_request[1], post_parameters)
@@ -273,7 +273,7 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
             
             
         except Exception as e:
-            self.log_error("Unhandled error processing posted data: %s", e.message)
+            self.log_error("Unhandled error processing posted data: %s", e)
             self.send_error(500, "Server failed to process an internal error correctly")
     
     def _process_post(self, recType, postvars):

@@ -83,10 +83,17 @@ class HistoriaCoreController(object):
     def start_interface(self):
         self.interface.startup(self)
     
-    def process_request(self, session_id, object, request, parameters):
+    def process_request(self, request_handler, session_id, object, request, parameters):
+        """Process requests from a request_handler and send back the results"""
         if object not in self.routers:
-            return False
-        pass
+            request_handler.send_error(404, "Requested Resource not found")
+            return
+            
+        if session_id is None:
+            request_handler.send_home()
+            return
+            
+        
         
     
     def process_login(self, parameters):

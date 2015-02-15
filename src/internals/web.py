@@ -137,12 +137,10 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
         cls.logger = controller.logger
         cls.patterns = controller.request_patterns()
     
-    def _send_headers(self, code, contentType):
-        """Setup and send the headers for a valid 200 text response"""
-        self.send_response(code)
-        self.send_header("content-type", contentType)
-        self.end_headers()
-    
+    def send_home(self):
+        """Send the historia home page."""
+        self.send_file('html/page.html')
+        
     def send_record(self, record):
         pass
     
@@ -177,6 +175,12 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
         
         
     
+    def _send_headers(self, code, contentType):
+        """Setup and send the headers for a valid 200 text response"""
+        self.send_response(code)
+        self.send_header("content-type", contentType)
+        self.end_headers()
+        
     def _check_file(self, path):
         """Check to see if the provided filepath is within the ServerTemplates
         directory for Historia."""
@@ -213,13 +217,13 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
         
         # Send the welcome page
         if path_request[0] == 'home':
-            self.send_file('html/page.html')
+            self.send_home()
         elif path_request[0] == 'files':
             self.send_file(path_request[1]) # File security handled by the send_file function
         # For all other values we send the request to the controller for handling.
         else:
             query_parameters = urllib.parse.parse_qs(full_request[1]) if len(full_request) == 2 else {}
-            self.controller.process_request(None, path_request[0], path_request[1], query_parameters)
+            self.controller.process_request(self, None, path_request[0], path_request[1], query_parameters)
             
 
     def do_POST(self):
@@ -240,7 +244,7 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
             self.log_error("Unhandled error processing posted data sent to {0}: {1}".format(self.path, str(err)))
             self.send_error(500, "Error processing posted values.")
             return
-        self.controller.process_request(None, path_request[0], path_request[1], post_parameters)
+        self.controller.process_request(self, None, path_request[0], path_request[1], post_parameters)
     
     
     def parse_POST(self):

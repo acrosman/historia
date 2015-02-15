@@ -12,7 +12,14 @@ Historia uses a built-in web server, and currently has no configuration (somethi
 Requirements
 ============
 **Python 3.4**
-Historia's back end is pure python and so should run on any platform that supports Python 3.4 or later, but it has only been tested on MacOS X.
+Historia's should run on any platform that supports Python 3.4 or later, but it has only been tested on MacOS X. 
+
+The following add-ons are required:
+**py-bcrypt**
+https://code.google.com/p/py-bcrypt/
+
+**mysql python connector**
+http://dev.mysql.com/downloads/connector/python/
 
 License
 =======

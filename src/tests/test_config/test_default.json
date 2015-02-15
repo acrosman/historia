@@ -1,0 +1,9 @@
+{
+  'database': {
+    'user': 'historia',
+    'password': 'historia',
+    'host': '127.0.0.1',
+    'database':"histora_test_db",
+    'raise_on_warnings': False
+  }
+}

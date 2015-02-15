@@ -70,6 +70,9 @@ class HTTPException(WebException):
         # Call the base class constructor with the parameters it needs
         super().__init__(message)
         self.response_code = response_code
+    
+    def __str__(self):
+        return "Response Code {0}: {1}".format(self.response_code, super().__str__())
 
 
 

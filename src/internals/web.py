@@ -20,11 +20,12 @@ Created on Feb 5, 2015
     along with historia.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import cgi, urllib.parse
+import urllib.parse
 import threading
 import os, os.path
 import ssl
 import http.server, http.cookies
+from cgi import parse_header, parse_multipart
 
 from .exceptions import *
 from .controllers import *
@@ -223,92 +224,37 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
 
         self.log_message("Processing POST request %s", self.path)
         
-        
-        processed = HistoriaHTTPHandler.ValidateURL(self.path)
-        
-        # If the ValidateURL failed, return the error
-        # TODO: Think of a good way to handle error messages
-        if processed[0] == 'error':
-            self.send_error(processed[1], "Historia is unable to help you with: %s"%self.path)
+        try:
+            path_request = HistoriaHTTPHandler.ValidateURL(self.path)
+        except HTTPException as err:
+            self.send_error(err.response_code, str(err))
             return
         
-        
-        try:
-            ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
-            if ctype == 'multipart/form-data':
-                query=cgi.parse_multipart(self.rfile, pdict)
-                self.log_message("Multipart/form-data sent...we don't do anything with that...")
-                #TODO: Warning, nothing happens with this code...this condition
-                # is left over from sample code and needs attention
-                self.send_error(404, "Must use application/x-www-form-urlencoded not multipart/form-data ")
-            elif ctype == "application/x-www-form-urlencoded":
-                try:
-                    length = int(self.headers.getheader('content-length'))
-                    
-                    # Place the posted data into postvars for detailed processing.
-                    postvars = urlparse.parse_qs(self.rfile.read(length), keep_blank_values=True)
-                                
-                    # Extract the posted data and arrange it for loading into historia
-                    recType = processed[0].capitalize()
-                    recData = self._process_post(recType, postvars)
-                    
-                    if processed[1] == "edit":
-                        recData['ID'] = processed[2]
-                    elif processed[1] == "add":
-                        recData['ID'] = -1
-                    
-                    # Save to the database
-                    result = self._save_db_data(recType, recData)
-                    self.log_message("Data saved to database")
-                except Error404 as err:
-                    self.log_error("Rejected post with a 404 during processing: %s", err)
-                    self.send_error(404, err)
-                except Error403 as err:
-                    self.log_error("Rejected post with a 403 during processing: %s", err)                    
-                    self.send_error(403, err)
-                else:
-                    query_parameters = urllib.parse.parse_qs(full_request[1]) if len(full_request) == 2 else {}
-                    self.controller.process_request(None, path_request[0], path_request[1], post_parameters)
-                    
-            
-            
-        except Exception as e:
-            self.log_error("Unhandled error processing posted data: %s", e)
-            self.send_error(500, "Server failed to process an internal error correctly")
+        try: 
+            post_parameters = self.parse_POST()
+        except Exception as err:
+            self.log_error("Unhandled error processing posted data sent to {0}: {1}".format(self.path, str(err)))
+            self.send_error(500, "Error processing posted values.")
+            return
+        self.controller.process_request(None, path_request[0], path_request[1], post_parameters)
     
-    def _process_post(self, recType, postvars):
-        """ Helper function to handle note record submissions and help keep do_POST sane."""
+    
+    def parse_POST(self):
+        ctype, pdict = parse_header(self.headers['content-type'])
         
-        fields = {'Note':{'Note':'','Page':'','Title':'','Comment':'','Categories':'','Source':''},
-                  'Category':{'Value':''},
-                  'Creator':{'FirstName':'', 'LastName':'', 'MiddleName':'', 'Source':'', 'Prefix':'', 'Suffix':'', 'Role':''},
-                  'Source': {}, # Sources have too many options to test this way, so validation is handled in partnerships between the controller and DAL.
-                  }
-        
-        recData = {}
-        
-        if recType != 'Source':
-            # Make sure all the fields are represented in the dict
-            postvars = dict(fields[recType].items() + postvars.items())
-        
-            # Check for invalid fields
-            if len(set(fields[recType]) ^ set(postvars) ) > 0:
-                raise Error403("Invalid field(s) posted for %s: %s"%(recType, set(fields[recType]) ^ set(postvars)))
-        
-            # Only copy over fields that are valid
-            for field in fields[recType]:
-                if postvars[field] != "":   
-                    recData[field] = postvars[field][0]
-                else:
-                    recData[field] = ''
-        else:
-            for fld in postvars:
-                recData[fld] = postvars[fld][0]
+        if ctype == 'multipart/form-data':
+            postvars = urllib.parse.parse_multipart(self.rfile, pdict)
+        elif ctype in ["application/x-www-form-urlencoded", 'application/json']:
+                length = int(self.headers['content-length'])
                 
-            
+                # Place the posted data into postvars for detailed processing.
+                postvars = urllib.parse.parse_qs(self.rfile.read(length), keep_blank_values=True)
+        else:
+            raise HTTPException("Posted content-type not recognized.",500)
         
-        return recData
-    
+        return postvars
+        
+        
     
     @classmethod
     def ValidateURL(cls, path):

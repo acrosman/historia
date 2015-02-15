@@ -280,7 +280,9 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
             segments = segments[1:]
         
         if HistoriaHTTPHandler.url_namespace is not None and HistoriaHTTPHandler.url_namespace != '':
-            if segments[0] != HistoriaHTTPHandler.url_namespace:
+            if len(segments) == 0:
+                raise HTTPException("Invalid URL sent for validation: required namespace missing", 404)
+            elif segments[0] != HistoriaHTTPHandler.url_namespace:
                 raise HTTPException("Invalid URL sent for validation: required namespace missing", 404)
             else:
                 segments = segments[1:]

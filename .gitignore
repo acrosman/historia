@@ -52,4 +52,8 @@ docs/_build/
 
 # PyBuilder
 target/
-ssl_cert
+
+# SSL certificate
+ssl_cert/*.pem
+ssl_cert/*.key
+ssl_cert/*.crt

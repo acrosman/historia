@@ -323,7 +323,16 @@ class HistoriaRecord(HistoriaDataObject):
         if self.id != -1:
             raise DataLoadError("Cannot load a record into a record object already in new.  Memory is cheap, create a new one.")
         
-        data = self.database.execute_select(self._generate_select_SQL(recordID))[0]
+        data = self.database.execute_select(self._generate_select_SQL(recordID))
+        
+        if len(data) < 1:
+            raise DataLoadError("No records found with matching ID {0}".format(recordID))
+        
+        if len(data) > 1:
+            self.logger.error("Duplicate records found with matching ID{0}".format(recordID))
+            raise DataLoadError("Duplicate records found with matching ID{0}".format(recordID))
+        
+        data = data[0]
         
         for field in data:
             if field == 'id':

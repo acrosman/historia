@@ -283,10 +283,10 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
                     session = self.controller.reload_session(session_cookies['session'].value, self.address_string())
             except http.cookies.CookieError as err:
                 self.log_error('Error loading cookie. Resetting')
-                session_cookies = http.cookies.SimpleCookie()
-        
-        if 'session' not in session_cookies:
-            session = self.controller.start_session(self.address_string())
+                session = self.controller.start_session(self.address_string())
+            except InvalidSessionError as err:
+                self.log_error('Invalid session ID Resetting')
+                session = self.controller.start_session(self.address_string())
         
         return session
     

@@ -280,6 +280,9 @@ class TestUser(unittest.TestCase):
         self.assertAlmostEqual(sess2.created, sess1.created, delta=datetime.timedelta(seconds=1), msg="created in the table should match the one on the record.")        
         self.assertAlmostEqual(sess2.last_seen, sess1.last_seen,  delta=datetime.timedelta(seconds=1), msg="last_access in the table should match the one on the record.")        
 
+        # Try to load with bogus ID
+        self.assertRaises(exceptions.DataLoadError, sess2.load, '0215158c-93d9-2338-ac38-cb45e6096ed2') # that session id was generated during testing, so shouldn't come around again.
+        
 
     def test_45_save_and_load(self):
         """HistoriaSetting: test save() then load() then save()."""

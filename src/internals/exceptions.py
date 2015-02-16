@@ -60,6 +60,8 @@ class ConfigurationLoadError(ControllerException):
     """Raised when an attempt is made to load the configuration as it fails."""
     pass
 
+class InvalidSessionError(ControllerException):
+    """Raised when there is an attempt to create or access an invalid session."""
 
 ###############################################################################
 ##               Web Interface Exceptions

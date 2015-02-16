@@ -433,6 +433,14 @@ class TestRecord(unittest.TestCase):
         self.assertEqual(len(result), 1, "There should still only be 1 entry in the table.")
         self.assertEqual(result[0]['id'], hr.id, "ID in the table should match the ID on the record.")
 
+        hr.value = "Change"
+        hr.save()
+        select = ("SELECT * FROM `historia_generic`",{})
+        result = self.db.execute_select(select)
+        self.assertEqual(len(result), 1, "There should still only be 1 entry in the table.")
+        self.assertEqual(result[0]['id'], hr.id, "ID in the table should match the ID on the record.")
+
+
     def test_40_load(self):
         """HistoriaRecord: load()"""
         
@@ -446,6 +454,28 @@ class TestRecord(unittest.TestCase):
         self.assertEqual(hr2.id, hr.id, "IDs on original and loaded object don't match")
         self.assertFalse(hr2._dirty, "The dirty bit is wrong after load.")
         self.assertEqual(hr, hr2, "The two copies of the record should consider themselves equal.")
+        
+        # Try to load with bogus ID
+        self.assertRaises(exceptions.DataLoadError, hr2.load, hr2.id+1)
+        
+        
+    
+    def test_45_load_and_save(self):
+        """HistoriaRecord: use load() and save() a couple of times in a row to make sure we don't create extra records."""
+    
+        hr = core_data_objects.HistoriaRecord(self.db)
+        self.database_setup(withTables=True)
+        hr.save()
+        
+        hr2 = core_data_objects.HistoriaRecord(self.db)
+        hr2.load(hr.id)
+        hr2.value = "Changed"
+        hr2.save()
+        select = ("SELECT * FROM `historia_generic`",{})
+        result = self.db.execute_select(select)
+        self.assertEqual(len(result), 1, "There should still only be 1 entry in the table.")
+        self.assertEqual(result[0]['id'], hr2.id, "ID in the table should match the ID on the record.")
+    
     
     def test_50_delete(self):
         """HistoriaRecord: delete()"""

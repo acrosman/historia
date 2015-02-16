@@ -235,7 +235,7 @@ class HistoriaCoreController(object):
             self.logger.info("Loaded session with ID: {0}".format(session_id))
         except database.exceptions.DataLoadError as err:
             self.logger.error('Unable to load session: {0}'.format(session_id))
-            raise err
+            raise InvalidSessionError("Invalid Session ID: {0}".format(session_id))
         except database.exceptions.DataConnectionError as err:
             self.logger.error('Unable to connect to database to load session: {0}'.format(session_id))
             raise err

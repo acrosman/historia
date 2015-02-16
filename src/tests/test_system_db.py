@@ -60,7 +60,7 @@ class TestSystemDatabase(unittest.TestCase):
         self.assertEqual(db.name, self.testDBName, "Name passed to object didn't make it")
         self.assertIsNone(db._id, "ID should be none for databases")
         self.assertEqual(len(db.connection_settings), 5, "Incorrect number of DB settings")
-        self.assertEqual(len(db.member_classes), 2, "Incorrect number of member classes")
+        self.assertEqual(len(db.member_classes), 3, "Incorrect number of member classes")
         self.assertEqual(db.database_defaults['charset'], 'utf8', 'System database should always use UTF-8')
         self.assertIsNone(db.connection, "Where did the database get a connection object already")
     

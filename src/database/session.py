@@ -122,6 +122,33 @@ class HistoriaSession(HistoriaRecord):
         statement = "SELECT * FROM `{0}` WHERE `sessionid` = %({1})s".format(self.machine_type, 'sessionid')
 
         return (statement, fields)
+        
+    # Overloaded since session doesn't use primary key.
+    def _generate_update_SQL(self):
+
+        fields = {}
+        primary = ''
+
+        statement = "UPDATE `{0}` SET ".format(self.machine_type)
+
+        for field in self._table_fields:
+            if 'index' in self._table_fields[field]:
+                if self._table_fields[field]['index']['type'] == 'PRIMARY':
+                    primary = field
+
+            if self._table_fields[field]['default'] =='AUTO_INCREMENT':
+                continue # Don't touch auto fields
+
+            if self._table_fields[field]['type'] == 'timestamp':
+                continue # timestamps should be set to care for themselves.
+
+            fields[field] = getattr(self, field)
+            statement += "`{0}` = %({1})s,".format(field, field)
+
+        statement = statement[:-1] + " WHERE `sessionid` = %(sessionid)s"
+        fields['sessionid'] = self.sessionid
+
+        return (statement, fields)
 
     
 

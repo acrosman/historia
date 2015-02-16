@@ -244,7 +244,18 @@ class TestUser(unittest.TestCase):
         self.assertEqual(result[0]['sessionid'], sess.sessionid, "sessionid in the table should match the sessionid on the record.")
         self.assertEqual(result[0]['ip'], sess.ip, "ip in the table should match the one on the record.")        
         self.assertEqual(result[0]['userid'], sess.userid, "userid in the table should match the one on the record.")
+        
+        # Resave and make sure we still only have one in the database (and force the update sql to run)
+        sess.save()
+        # Now let's go see if it's really there
+        select = ("SELECT * FROM `{0}`".format(session.HistoriaSession.machine_type),{})
+        result = self.db.execute_select(select)
 
+        self.assertEqual(len(result), 1, "There should be 1 and only 1 entry in the table.")
+        self.assertEqual(result[0]['sessionid'], sess.sessionid, "sessionid in the table should match the sessionid on the record.")
+        self.assertEqual(result[0]['ip'], sess.ip, "ip in the table should match the one on the record.")        
+        self.assertEqual(result[0]['userid'], sess.userid, "userid in the table should match the one on the record.")
+        
         
     def test_40_load(self):
         """HistoriaSetting: load()"""

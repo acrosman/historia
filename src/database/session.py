@@ -115,6 +115,12 @@ class HistoriaSession(HistoriaRecord):
         self.last_seen = datetime.datetime.now()
         super().save()
     
+    # Overloaded to make sure we get the right settings without ID in use
+    def load(self, recordID):
+        super().load(recordID)
+        self._id = self.sessionid
+        self._dirty = False
+    
     # Overloaded since session doesn't use primary key.
     def _generate_select_SQL(self, session_id):
 

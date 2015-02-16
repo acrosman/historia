@@ -280,6 +280,36 @@ class TestUser(unittest.TestCase):
         self.assertAlmostEqual(sess2.created, sess1.created, delta=datetime.timedelta(seconds=1), msg="created in the table should match the one on the record.")        
         self.assertAlmostEqual(sess2.last_seen, sess1.last_seen,  delta=datetime.timedelta(seconds=1), msg="last_access in the table should match the one on the record.")        
 
+
+    def test_45_save_and_load(self):
+        """HistoriaSetting: test save() then load() then save()."""
+        self.database_setup(withTables=True)
+        sess1 = session.HistoriaSession(self.db)
+        current_stamp = datetime.datetime.now()
+        session_id = sess1.new_id()
+        sess1.ip = "127.0.0.1"
+        sess1.userid = 123
+        sess1.created = current_stamp
+        sess1.last_seen = current_stamp
+        sess1.save()
+
+        sess2 = session.HistoriaSession(self.db)
+        sess2.load(sess1.sessionid)
+        
+        sess2.save()
+        
+        
+        # Now let's go see if it's really there
+        select = ("SELECT * FROM `{0}`".format(session.HistoriaSession.machine_type),{})
+        result = self.db.execute_select(select)
+        
+        self.assertEqual(sess1.sessionid, sess2.sessionid, "sessionid on original and loaded object don't match")
+        self.assertEqual(len(result), 1, "There should be 1 and only 1 entry in the table.")
+        self.assertEqual(result[0]['sessionid'], sess2.sessionid, "sessionid in the table should match the sessionid on the record.")
+        self.assertEqual(result[0]['ip'], sess2.ip, "ip in the table should match the one on the record.")        
+        self.assertEqual(result[0]['userid'], sess2.userid, "userid in the table should match the one on the record.")
+
+
     def test_50_delete(self):
         """HistoriaSetting: delete()"""
         self.database_setup(withTables=True)

@@ -34,7 +34,7 @@ class HistoriaServer(object):
     
     running = False
     
-    def startup(self, controller, configLoc = None):
+    def startup(self, controller):
         '''Sets everything up'''
         
         # Set up the main Historia controller:
@@ -48,9 +48,9 @@ class HistoriaServer(object):
         port = self.controller.config['server']['port']
         
         
-        HistoriaHTTPHandler.setcontroller(self.controller)
+        HistoriaHTTPHandler.set_controller(self.controller)
                 
-        self.server = http.server.HTTPServer(('', int(port)), HistoriaHTTPHandler)
+        self.server = http.server.HTTPServer(('localhost', int(port)), HistoriaHTTPHandler)
         self.server.socket = ssl.wrap_socket(self.server.socket,
                                        server_side=True,
                                        certfile='../ssl_cert/historia.pem',
@@ -85,9 +85,7 @@ class HistoriaServer(object):
 
 class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
     
-    # Standard Historia logging:
-    logger = None
-        
+    
     # Path Namespace
     url_namespace = "historia"
     
@@ -114,35 +112,40 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
     file_base_path =  os.path.join(os.getcwd(),"templates")
     
     def log_error(self, format, *args):
-        if HistoriaHTTPHandler.logger == None:
-            return
-        else:
-            HistoriaHTTPHandler.logger.error("HTTP Interface(%s): %s" %
-                                         (self.address_string(),
-                                         format%args))
+        try:
+            self.logger.error("HTTP Interface(%s): %s" %
+                             (self.address_string(),
+                             format%args))
+        except AttributeError as err:
+            self.logger = logging.getLogger('historia.web')
+            self.logger.error("HTTP Interface(%s): %s" %
+                             (self.address_string(),
+                             format%args))
     
     def log_message(self, format, *args):
-        if HistoriaHTTPHandler.logger == None:
-            return
-        else:
-            HistoriaHTTPHandler.logger.info("HTTP Interface(%s): %s" %
-                                         (self.address_string(),
-                                         format%args))
-        
+        try:
+            self.logger.error("HTTP Interface(%s): %s" %
+                             (self.address_string(),
+                             format%args))
+        except AttributeError as err:
+            self.logger = logging.getLogger('historia.web')
+            self.logger.info("HTTP Interface(%s): %s" %
+                             (self.address_string(),
+                             format%args))
+                         
     @classmethod
-    def setcontroller(cls, controller):
+    def set_controller(cls, controller):
         cls.controller = controller
-        cls.logger = controller.logger
         cls.patterns = controller.request_patterns()
     
-    def send_home(self):
+    def send_home(self, session):
         """Send the historia home page."""
-        self.send_file('html/page.html')
+        self.send_file(session, 'html/page.html')
         
-    def send_record(self, record):
+    def send_record(self, session, record):
         pass
     
-    def send_file(self, file_path):
+    def send_file(self, session, file_path):
         """Send a file. Path must be within file_base_path. If file_base_path is empty a 403 will always be raised."""
         if HistoriaHTTPHandler.file_base_path == "":
             self.send_error(403, "File base path not configured, all files blocked.")
@@ -159,11 +162,11 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
             mode = "r"
             if not content_type.startswith("text"):
                 f = open(real_path, 'rb')
-                self._send_headers(200, content_type)
+                self._send_headers(200, content_type, session)
                 self.wfile.write(f.read())
             else:
                 f = open(real_path, 'r')
-                self._send_headers(200, content_type)
+                self._send_headers(200, content_type, session)
                 self.wfile.write(f.read().encode('utf-8'))
                 
                 
@@ -172,10 +175,12 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
             self.send_error(404, "File Not Available: {0}".format(file_path))
         
         
-    
-    def _send_headers(self, code, contentType):
+    def _send_headers(self, code, contentType, session):
         """Setup and send the headers for a valid 200 text response"""
         self.send_response(code)
+        cookie = http.cookies.SimpleCookie()
+        cookie['session'] = session.sessionid
+        self.send_header('Set-Cookie', cookie.output(header=''))
         self.send_header("content-type", contentType)
         self.end_headers()
         
@@ -218,9 +223,9 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
         
         # Send the welcome page
         if path_request[0] == 'home':
-            self.send_home()
+            self.send_home(session)
         elif path_request[0] == 'files':
-            self.send_file(path_request[1]) # File security handled by the send_file function
+            self.send_file(session, path_request[1]) # File security handled by the send_file function
         # For all other values we send the request to the controller for handling.
         else:
             query_parameters = urllib.parse.parse_qs(full_request[1]) if len(full_request) == 2 else {}
@@ -275,8 +280,8 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
             try:
                 session_cookies.load(self.headers['Cookie'])
                 if 'session' in session_cookies:
-                    session = self.controller.reload_session(session_cookies['session'])
-            except CookieError as err:
+                    session = self.controller.reload_session(session_cookies['session'].value, self.address_string())
+            except http.cookies.CookieError as err:
                 self.log_error('Error loading cookie. Resetting')
                 session_cookies = http.cookies.SimpleCookie()
         

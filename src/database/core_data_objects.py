@@ -83,8 +83,12 @@ class HistoriaDatabase(HistoriaDataObject):
         self.connection = None
     
     def connect(self):
-        self.connection = mysql.connector.connect(**self.connection_settings)
-        return True
+        try:
+            self.connection = mysql.connector.connect(**self.connection_settings)
+            return True
+        except mysql.connector.Error as err:
+             self._logger.error("Unable to establish database connection: {0}".format(str(err)))
+             raise DataConnectionError("Unable to establish database connection: {0}".format(str(err)))
 
     def disconnect(self):
         if self.connected:
@@ -437,9 +441,6 @@ class HistoriaRecord(HistoriaDataObject):
     
     #  =============== CRUD Helpers ===================
     def _generate_insert_SQL(self):
-        #add_salary = ("INSERT INTO salaries "
-        #              "(emp_no, salary, from_date, to_date) "
-        #              "VALUES (%(emp_no)s, %(salary)s, %(from_date)s, %(to_date)s)")        
         #INSERT INTO `Users` (`id`, `name`, `email`, `pass`, `modified`, `created`, `last_access`, `enabled`, `admin`) VALUES (NULL, 'aaron', 'acrosman@gmail.com', 'bcrypt_hash', CURRENT_TIMESTAMP, NOW(), NULL, '1', '0');
         
         fields = {}

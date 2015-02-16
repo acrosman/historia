@@ -31,13 +31,13 @@ import pkgutil
 from internals.controllers import *
 from internals.web import *
 
-__author__ = "Aaron Crosman"
-__copyright__ = "Copyright 2015, Aaron Crosman"
-__credits__ = ["Aaron Crosman"]
-__license__ = "GPL"
-__version__ = "0.0.1"
-__maintainer__ = "Aaron Crosman"
-__status__ = "Pre-Alpha"
+__author__      = "Aaron Crosman"
+__copyright__   = "Copyright 2015, Aaron Crosman"
+__credits__     = ["Aaron Crosman"]
+__license__     = "GPL"
+__version__     = "0.0.1"
+__maintainer__  = "Aaron Crosman"
+__status__      = "Pre-Alpha"
 
 
 def historia_version():
@@ -48,6 +48,7 @@ def historia_version():
 parser = argparse.ArgumentParser(prog="Historia")
 parser.add_argument('-c','--config', help="The path to the configuration files to load for historia. Historia will look for a default.json and a historia.json at the location; only default.json is required.")
 parser.add_argument('-v','--version', help="Print the version information for Historia and the local Python installation.", action="version", version='%(prog)s: ' + historia_version())
+parser.add_argument('--install', help="Install a fresh master database.  *Warning*: all data in the master will be lost! Make a backup if there is anything important in that database.", action="store_true")
 
 args = parser.parse_args()
 
@@ -57,5 +58,19 @@ if args.config is not None:
     settingsLocation = args.config
 
 master_controller = HistoriaCoreController(settingsLocation)
+
+if args.install:
+    settings = {
+        "user": master_controller.config['database']['user'],
+        "password": master_controller.config['database']["password"],
+        "host": master_controller.config['database']['host'],
+        "raise_on_warnings": False
+    }
+    
+    master_controller.database = master_controller.create_database(database_name=master_controller.config['database']['main_database'], 
+                                                                    connection_settings=settings, 
+                                                                    db_type = "system")
+    master_controller.logger.info("Master Database Created.")
+    
 master_controller.setup_web_interface()
 master_controller.start_interface()

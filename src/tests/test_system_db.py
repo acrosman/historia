@@ -78,7 +78,7 @@ class TestSystemDatabase(unittest.TestCase):
         
     
     def test_30_createDatabase(self):
-        """SystemDatabase: Create a new database (self)"""
+        """SystemDatabase: Create a new database"""
         db = system_db.HistoriaSystemDatabase(self.testDBName)
         db.connection_settings = self.default_settings
         

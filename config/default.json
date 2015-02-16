@@ -17,7 +17,7 @@
           "class": "logging.StreamHandler",
           "level": "DEBUG",
           "formatter": "default",
-          "stream": "sys.stderr"
+          "stream": "ext://sys.stderr"
       },
       "error_file_handler": {
           "class": "logging.handlers.RotatingFileHandler",
@@ -51,6 +51,10 @@
     "filters": {},
     "loggers": {
       "historia.ctrl":{
+        "level":"ERROR",
+        "handlers" : ["error_file_handler","access_file_handler"]
+      },
+      "historia.web":{
         "level":"ERROR",
         "handlers" : ["error_file_handler","access_file_handler"]
       },

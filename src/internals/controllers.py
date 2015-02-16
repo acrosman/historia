@@ -34,6 +34,7 @@ from .exceptions import *
 
 from database import system_db, user, session
 from database import core_data_objects
+import database.exceptions
 
 from .web import *
 
@@ -64,6 +65,11 @@ class HistoriaCoreController(object):
         
         self.load_configuration(config_location)
         
+        try:
+            self.connect_to_master_database()
+        except database.exceptions.DataConnectionError as err:
+            self.logger.error("Unable to connect to master database with current settings.")
+        
     def load_configuration(self, file_location):
         """Load the configuration files for Historia"""
         default_file =  os.path.join(file_location,"default.json")
@@ -83,7 +89,7 @@ class HistoriaCoreController(object):
             override_status = { # we'll log this failure later, but since it's a reasonable condition continue
                 'Success': False,
                 'Message': "Failed to load configuration override file {0} due to {1}. This may be an expected result, conitnuing.".format(override_file, str(err))
-           }
+            }
         else:
            override_status = {
                  'Success': True,
@@ -159,6 +165,16 @@ class HistoriaCoreController(object):
         else:
             raise ValueError("Databases much be of type 'system' or 'user'")
     
+    def connect_to_master_database(self):
+        """Connect to the system's master database. Connection settings must be in self.config['database']"""
+        
+        self.database = system_db.HistoriaSystemDatabase(self.config['database']['main_database'])
+        self.database.connection_settings['user'] = self.config['database']['user']
+        self.database.connection_settings['password'] = self.config['database']['password']
+        self.database.connection_settings['host'] = self.config['database']['host']
+        
+        self.database.connect()
+        
     def load_database(self, database_name):
         """Setup a connection to an existing database based on database name."""
         pass
@@ -197,7 +213,7 @@ class HistoriaCoreController(object):
     
     def start_session(self, ip):
         """Return a new session object"""
-        sess = session.HistoriaSession()
+        sess = session.HistoriaSession(self.database)
         sess_id = sess.new_id()
         sess.ip = ip
         sess.userid = 0
@@ -209,7 +225,7 @@ class HistoriaCoreController(object):
         
     def reload_session(self, session_id, ip):
         """Return a new session object"""
-        sess = session.HistoriaSession()
+        sess = session.HistoriaSession(self.database)
         try:
             sess.load(session_id)
             if sess.ip != ip:
@@ -217,10 +233,10 @@ class HistoriaCoreController(object):
             sess.save() # reset the last_seen value in the database
 
             self.logger.info("Loaded session with ID: {0}".format(session_id))
-        except DataLoadError as err:
+        except database.exceptions.DataLoadError as err:
             self.logger.error('Unable to load session: {0}'.format(session_id))
             raise err
-        except DataConnectionError as err:
+        except database.exceptions.DataConnectionError as err:
             self.logger.error('Unable to connect to database to load session: {0}'.format(session_id))
             raise err
         else:

@@ -29,6 +29,7 @@ import os
 from .core_data_objects import *
 from .settings import *
 from .user import *
+from .session import *
 from .exceptions import *
 
 
@@ -41,7 +42,8 @@ class HistoriaSystemDatabase(HistoriaDatabase):
         
         self.member_classes = [
             HistoriaSetting,
-            HistoriaUser
+            HistoriaUser,
+            HistoriaSession
         ]
         
     def createDatabase(self, database):

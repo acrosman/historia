@@ -1,0 +1,29 @@
+<div id="LoginPage"  ng-controller="UserLoginController as userCtrl">
+  <div id="mainPanel">
+    <h1>Login</h1>
+    <form name="userForm" ng-submit="userCtrl.login()">
+      <div id="username_field_wrapper" class="field_wrapper">
+      <label for="userName">User name or email address</label>
+      <input ng-model="userCtrl.name" type="text" name="userName" id="userName" placeholder="user name or email" title="User Name" >
+      </div>
+      <div id="password_field_wrapper" class="field_wrapper">
+      <label for="password">User name or email address</label>
+      <input ng-model="userCtrl.password" type="password" name="password" id="password" placeholder="" title="Password" >
+      </div>
+      <input type="submit" name="login_btn" id="login_btn" value="Login">
+      </form>
+  </div><!-- end #mainPanel -->
+  <div id="rightsidebar">
+    <h3>Response Headers:</h3>
+    <div id="response_header">
+      <div><strong>URL:</strong>{{userCtrl.lastHeaders.url}}</div>
+      <div><strong>Date:</strong>{{userCtrl.lastHeaders.date}}</div>
+      <div><strong>Status:</strong>{{userCtrl.lastHeaders.status}}</div>
+      <div><strong>Server:</strong>{{userCtrl.lastHeaders.server}}</div>
+    </div>
+    <h3>Response Body:</h3>
+    <div id="response_body">
+      <pre>{{submission.lastResponse}}</pre>
+    </div>
+  </div><!-- end rightsidebar -->
+</div><!-- end LoginPage -->

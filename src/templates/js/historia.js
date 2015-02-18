@@ -72,7 +72,40 @@
     };
     
   });
+  app.controller('UserLoginController', ['$http',function($http){
+    
+    this.targetUrl = "/historia/system/user_login";
+    this.lastResponse = {};
+    this.lastHeaders = "N/A";
+    this.lastURL = "N/A";
+    this.name = "";
+    this.password = "";
+    
+    var userCtrl = this;
   
+  this.login = function() {
+    // send the current values and see what's up.
+
+    var data = {
+      "user": this.name,
+      "password": this.password
+    };
+    
+    $http.post(this.targetUrl, data).success(this.display_response).error(this.display_response);
+  }
+  
+  this.reset_params = function() {
+    this.parameters = [];
+  }
+  
+  this.display_response = function(data, status, headers, config) {
+    userCtrl.lastResponse = data;
+    userCtrl.lastHeaders = headers();
+    userCtrl.lastHeaders.status = status;
+    userCtrl.lastHeaders.url = config.url;
+  }
+
+}]);
   
   app.directive("historiaContent", function() {
     return {
@@ -92,6 +125,12 @@
     return {
       restrict: 'E',
       templateUrl: '/historia/files/html/test_form.html'
+    }
+  });
+  app.directive('userLoginPage', function() {
+    return {
+      restrict: 'E',
+      templateUrl: '/historia/files/html/login.html'
     }
   });
   

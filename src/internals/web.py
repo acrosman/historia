@@ -23,7 +23,7 @@ Created on Feb 5, 2015
 import urllib.parse
 import threading
 import os, os.path
-import ssl
+import ssl, json
 import http.server, http.cookies
 from cgi import parse_header, parse_multipart
 
@@ -143,7 +143,8 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
         self.send_file(session, 'html/page.html')
         
     def send_record(self, session, record):
-        pass
+        self._send_headers(200, 'json', session)
+        self.wfile.write(record.to_JSON().encode('utf-8'))
     
     def send_file(self, session, file_path):
         """Send a file. Path must be within file_base_path. If file_base_path is empty a 403 will always be raised."""
@@ -262,11 +263,14 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
         
         if ctype == 'multipart/form-data':
             postvars = urllib.parse.parse_multipart(self.rfile, pdict)
-        elif ctype in ["application/x-www-form-urlencoded", 'application/json']:
+        elif ctype == "application/x-www-form-urlencoded":
                 length = int(self.headers['content-length'])
                 
                 # Place the posted data into postvars for detailed processing.
                 postvars = urllib.parse.parse_qs(self.rfile.read(length), keep_blank_values=True)
+        elif ctype == 'application/json':
+            length = int(self.headers['content-length'])
+            postvars = json.loads(self.rfile.read(length).decode())
         else:
             raise HTTPException("Posted content-type not recognized.",500)
         
@@ -287,6 +291,8 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
             except InvalidSessionError as err:
                 self.log_error('Invalid session ID Resetting')
                 session = self.controller.start_session(self.address_string())
+        else:
+            session = self.controller.start_session(self.address_string())
         
         return session
     
@@ -332,7 +338,7 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
             raise HTTPException("Invalid Request Path", 403)
         
         # Compare remaining segments against the valid patterns
-        request = "/".join("segments")
+        request = "/".join(segments)
         if request not in HistoriaHTTPHandler.patterns:
             raise HTTPException("Location not found: {0}".format(path), 404)
         else:

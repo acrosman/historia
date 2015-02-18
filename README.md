@@ -7,15 +7,17 @@ Historia uses HTTPS for all connections, and therefore uses a certificate. By de
 
 Starting Historia
 =================
-Historia uses a built-in web server, and currently has no configuration (something that will change soon). To start the web server on a local machine simply browse to the historia/src folder in a command line window and run ./historia.  Then in your web browser open: https://localhost:8080/historia
+Historia uses a built-in web server, and currently has no configuration (something that will change soon). To start the web server on a local machine simply browse to the historia/src folder in a command line window and run ./historia.  Then in your web browser open: https://localhost:4443/historia
 
 Requirements
 ============
 **Python 3.4**
+
 Historia's should run on any platform that supports Python 3.4 or later, but it has only been tested on MacOS X. 
 
 The following add-ons are required:
 **py-bcrypt**
+
 https://code.google.com/p/py-bcrypt/
 
 **mysql python connector**

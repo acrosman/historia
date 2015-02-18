@@ -30,6 +30,7 @@ Created by Aaron Crosman on 2015-01-20.
 import sys, os
 import logging
 import datetime
+import json
 
 import mysql.connector
 
@@ -299,7 +300,23 @@ class HistoriaRecord(HistoriaDataObject):
                     return True
             except AttritbuteError:
                 return True
-
+    
+    def to_JSON(self):
+        """Return a JSON encoded string representing this object."""
+        
+        json_string = ''
+        
+        for field in type(self)._table_fields:
+            value = getattr(self, field)
+            if value is not None:
+                if self._is_type_datetime(type(self)._table_fields[field]['type']):
+                    json_string = '{0}\n"{1}":{2},'.format(json_string, field, json.dumps(value.strftime('%Y-%M-%d %H:%M:%S')))
+                else:
+                    json_string = '{0}\n"{1}":{2},'.format(json_string, field, json.dumps(value))
+        json_string = '{{0}}'.format(json_string[:-1])
+        
+        return json_string
+    
     # ============== CRUD methods ==================
     def save(self):
         """Save this record to the database."""
@@ -500,6 +517,9 @@ class HistoriaRecord(HistoriaDataObject):
         statement = "UPDATE `{0}` SET ".format(self.machine_type)
         
         for field in self._table_fields:
+            if 'default' not in self._table_fields[field]:
+                self._table_fields[field]['default'] = None
+
             if 'index' in self._table_fields[field]:
                 if self._table_fields[field]['index']['type'] == 'PRIMARY':
                     primary = field
@@ -592,6 +612,8 @@ class HistoriaRecord(HistoriaDataObject):
         if field_type == 'date':
             return True
         if field_type == 'datetime':
+            return True
+        if field_type == 'timestamp':
             return True
         if field_type == 'time':
             return True

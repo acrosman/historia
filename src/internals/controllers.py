@@ -120,21 +120,38 @@ class HistoriaCoreController(object):
         self.logger.info("Starting interface.")
         self.interface.startup(self)
     
-    def process_request(self, request_handler, session_id, object, request, parameters):
+    def process_request(self, request_handler, session, object, request, parameters):
         """Process requests from a request_handler and send back the results"""
         if object not in self.routers:
             request_handler.send_error(404, "Requested Resource not found")
             return
             
-        if session_id is None:
+        if session is None:
             request_handler.send_home()
             return
-            
+        
+        try:
+            result = self.routers[object][request](session, parameters)
+            if result is None:
+                request_handler.send_error(403, "Opperation failed")
+            elif result is True or result is False:
+                request_handler.send_record(session,{'Response':result})
+            else:
+                request_handler.send_record(session,result)
+        except Exception as err:
+            self.logger.error("Error handling request: {0}.{1} with {2} for {3}. Error: {4}".format(object, request, parameters, session, err))
+            request_handler.send_error(500, "Error processing request.")
         
     
-    def process_login(self, parameters):
-        return self.authorize_user(paramters['user'], parameters['password'])
-            
+    def process_login(self, session, parameters):
+        user =  self.authenticate_user(parameters['user'], parameters['password'])
+        
+        if user:
+            session.userid = user.id
+            session.save()
+        
+        return user
+        
     def system_status(self):
         pass
     
@@ -208,7 +225,7 @@ class HistoriaCoreController(object):
         
     
     def check_access(self, user, database):
-        """Check that a user has access to a given database. Both parameters can be either the name or the object representation."""
+        """Check that a user has access to a given database (object or name). Both parameters can be either the name or the object representation."""
         pass
     
     def start_session(self, ip):
@@ -242,15 +259,20 @@ class HistoriaCoreController(object):
         else:
             return sess
 
-
-    
-    def validate_session(self, session_id):
-        """Make sure the provided session is valid"""
-        pass
-        
     def end_session(self, session_id):
         """End a given user's session, and close their database connection to free resources."""
-        pass
+        sess = session.HistoriaSession(self.database)
+        try:
+            sess.load(session_id)
+            if sess.ip != ip:
+                sess.ip = ip
+            sess.delete()
+            self.logger.info("Ended session with ID: {0}".format(session_id))
+        except database.exceptions.DataLoadError as err:
+            pass
+        except database.exceptions.DataConnectionError as err:
+            self.logger.error('Unable to connect to database to load session: {0}'.format(session_id))
+            raise err
     
     @staticmethod
     def _deep_dict_merge(base_dict, update_dict):

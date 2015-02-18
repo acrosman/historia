@@ -138,6 +138,9 @@ class HistoriaSession(HistoriaRecord):
         statement = "UPDATE `{0}` SET ".format(self.machine_type)
 
         for field in self._table_fields:
+            if 'default' not in self._table_fields[field]:
+                self._table_fields[field]['default'] = None
+            
             if 'index' in self._table_fields[field]:
                 if self._table_fields[field]['index']['type'] == 'PRIMARY':
                     primary = field

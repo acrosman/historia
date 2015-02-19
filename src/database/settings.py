@@ -85,16 +85,7 @@ class HistoriaSetting(HistoriaRecord):
                     return True
             except AttritbuteError:
                 return True
-    
-    def save(self):
-        """Save this record to the database."""
 
-        if self.id == -1:
-            self._id = self.database.execute_insert(self._generate_insert_SQL())
-        else:
-            self.database.execute_update(self._generate_update_SQL())
-        
-        self._dirty = False
 
     def load(self, recordID):
         """Load a record from the database into this object."""

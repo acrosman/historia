@@ -54,9 +54,9 @@ docs/_build/
 target/
 
 # SSL certificate
-key/*.pem
-key/*.key
-key/*.crt
+keys/*.pem
+keys/*.key
+keys/*.crt
 test_historia.json
 historia.json
 old_templates

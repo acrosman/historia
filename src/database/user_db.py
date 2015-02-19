@@ -112,8 +112,17 @@ class HistoriaUserDatabase(HistoriaDatabase, HistoriaDataObject):
                         }
     
     
-    def __init__(self, database_name):
+    def __init__(self, database_name, key_file):
         super().__init__(database_name)
+        
+        try:
+            with open (key_file, 'r') as key_data:
+                self._aes_key = key_data.read()
+        except Exception as err:
+            self._logger.error("Unable to load key data from {0}".format(key_file))
+            raise
+        
+        self._password = None
         
         self.member_classes = [
         
@@ -127,26 +136,42 @@ class HistoriaUserDatabase(HistoriaDatabase, HistoriaDataObject):
         For a userdb, this also handle password decryption.
         """
 
-        # Create a bypass so we can load vaules from the database without trouble.
+        # Ensure the password in memory is always plain text.
         if name == 'password' and value is not None:
-            value = self._decrypt_password(value)
+            if self.iv != '' and self.iv is not None:
+                value = self._decrypt_password(value, self.iv)
+            else:
+                name = "_password"
+        if name == 'iv' and value is not None:
+            if self._password != '' and self._password is not None:
+                value = self._decrypt_password('_password', value)
 
         # Since all the general checking is at in HistoriaRecord, do the checking there.
         HistoriaRecord.__setattr__(self, name, value)
 
     def _encrypt_password(self, value):
-        key = b'Sixteen byte key' # <-- needs to be loaded from a file set in config
         iv = Random.new().read(AES.block_size)
-        cipher = AES.new(key, AES.MODE_CFB, iv)
+        cipher = AES.new(self._aes_key, AES.MODE_CFB, iv)
         msg = iv + cipher.encrypt(value)
-        return msg
+        return (iv, msg)
         
     def _decrypt_password(self, secure_text, iv):
-        key = b'Sixteen byte key' # <-- needs to be loaded from a file set in config
-        cipher = AES.new(key, AES.MODE_CFB, iv)
+        cipher = AES.new(self._aes_key, AES.MODE_CFB, iv)
         password =  cipher.decrypt(secure_text)
         return password
+    
+    def save(self):
+        """Save this record to the database."""
+        # encrypt the password before saving, with a new iv
+        self._password = None
+        self.iv = None
+        iv, password = self._encrypt_password(self.password)
+        HistoriaRecord.__setattr__('password', password)
+        HistoriaRecord.__setattr__('iv', iv)
         
+        super().save()
+
+
 
 if __name__ == '__main__':
     import unittest

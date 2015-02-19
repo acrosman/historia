@@ -46,7 +46,7 @@ class TestSettingRecord(unittest.TestCase):
           'raise_on_warnings': False
         }
         
-        statements = self.db.generate_SQL()
+        statements = self.db.generate_database_SQL()
         self.db.connection_settings = self.default_settings
         self.db.connect()
         cur = self.db.cursor()

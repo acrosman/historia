@@ -68,7 +68,7 @@ class TestUserDatabase(unittest.TestCase):
         
         db = user_db.HistoriaUserDatabase(self.testDBName)
         
-        statements = db.generate_SQL()
+        statements = db.generate_database_SQL()
         
         self.assertEqual(len(statements), (len(db.member_classes)*2)+2, "There should be 2 statements for each class + 2 for the database itself")
         

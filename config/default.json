@@ -4,7 +4,8 @@
     "password": "historia",
     "host": "127.0.0.1",
     "main_database":"histora_db",
-    "user_database_name_prefix":"historia"
+    "user_database_name_prefix":"historia",
+    "aes_key_file":"../keys/database_aes.key"
   },
   "server": {
     "port": 443,

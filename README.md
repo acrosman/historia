@@ -16,11 +16,17 @@ Requirements
 Historia's should run on any platform that supports Python 3.4 or later, but it has only been tested on MacOS X. 
 
 The following add-ons are required:
+
 **py-bcrypt**
 
 https://code.google.com/p/py-bcrypt/
 
+**pycrypto**
+
+https://pypi.python.org/pypi/pycrypto
+
 **mysql python connector**
+
 http://dev.mysql.com/downloads/connector/python/
 
 License

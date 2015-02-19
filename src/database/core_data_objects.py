@@ -118,8 +118,8 @@ class HistoriaDatabase(HistoriaDataObject):
         
         return self.connection.is_connected()
     
-    def generate_SQL(self):
-        """Generate the SQL statements to create the emptry database.
+    def generate_database_SQL(self):
+        """Generate the SQL statements to create the empty database.
         It cannot be assumed that the connection defined for this database has
         the access to actually create a new one. This just generates the SQL
         statements to be executed else where by a user with access.

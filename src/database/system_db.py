@@ -48,7 +48,7 @@ class HistoriaSystemDatabase(HistoriaDatabase):
         
     def createDatabase(self, database):
         """Create a database, either a system database or a user database."""
-        statements = database.generate_SQL()
+        statements = database.generate_database_SQL()
         
         if not self.connected:
             self.connect()

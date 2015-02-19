@@ -32,7 +32,7 @@ import json
 
 from .exceptions import *
 
-from database import system_db, user, session
+from database import system_db, user, session, user_db
 from database import core_data_objects
 import database.exceptions
 
@@ -178,7 +178,11 @@ class HistoriaCoreController(object):
             db.createDatabase(db)
             return db
         elif db_type == 'user':
-            raise NotImplemented('User Databases have not been implemented yet')
+            # Check to see if there is a database record on file for that name.
+            db = user_db.HistoriaUserDatabase(database_name)
+            db.connection_settings = connection_settings
+            db.createDatabase(db)
+            return db
         else:
             raise ValueError("Databases much be of type 'system' or 'user'")
     

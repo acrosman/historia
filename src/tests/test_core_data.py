@@ -81,7 +81,7 @@ class TestDatabase(unittest.TestCase):
     
     def prep_execute_test_tables(self):
         db = core_data_objects.HistoriaDatabase(self.testdb_name)
-        statements = db.generate_SQL()
+        statements = db.generate_database_SQL()
         db.connection_settings = self.default_settings
         db.connect()
         cur = db.cursor()
@@ -160,12 +160,12 @@ class TestDatabase(unittest.TestCase):
         self.assertIsNotNone(cur, "Cursor came back as none.")
         self.assertIsInstance(cur, mysql.connector.cursor.MySQLCursorDict, "Cursor is the wrong type: %s"%cur)
         
-    def test_30_generateSQL(self):
+    def test_30_generateDBSQL(self):
         """HistoriaDatabase: generate SQL for database"""
         
         
         db = core_data_objects.HistoriaDatabase(self.testdb_name)
-        statements = db.generate_SQL()
+        statements = db.generate_database_SQL()
         
         self.assertIsNotNone(statements, "None returned instead of a list of statements")
         self.assertIsInstance(statements, tuple, "Statements should be a tuple of SQL and parameter paired tuples")
@@ -283,7 +283,7 @@ class TestRecord(unittest.TestCase):
           'raise_on_warnings': False
         }
         
-        statements = self.db.generate_SQL()
+        statements = self.db.generate_database_SQL()
         self.db.connection_settings = self.default_settings
         self.db.connect()
         cur = self.db.cursor()
@@ -510,7 +510,7 @@ class TestSearchObject(unittest.TestCase):
 
     def database_setup(self, withTables=False):
 
-        statements = self.db.generate_SQL()
+        statements = self.db.generate_database_SQL()
         self.db.connection_settings = self.default_settings
         self.db.connect()
         cur = self.db.cursor()

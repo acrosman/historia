@@ -69,7 +69,7 @@ class HistoriaUserDatabase(HistoriaDatabase, HistoriaDataObject):
                             'password_aed_iv': {
                                 'type': 'blob',
                                 'allow_null':False,
-                                'order',4
+                                'order':4
                             },
                             'db_user': {
                                 'type': 'varchar',
@@ -124,15 +124,8 @@ class HistoriaUserDatabase(HistoriaDatabase, HistoriaDataObject):
         Use __setattr__ to detect changes to the object so that we can check
         the field list for value attributes and to set the dirty bit to see
         if a save is required. 
-        For a userdb, this also handle password encryption.
+        For a userdb, this also handle password decryption.
         """
-
-        # Ban @ from the name column to avoid email addresses appearing there.
-        try:
-            if name == 'name' and "@" in value:
-                raise ValueError("@ not permitted in user name.")
-        except TypeError as err:
-            pass
 
         # Create a bypass so we can load vaules from the database without trouble.
         if name == 'password' and value is not None:

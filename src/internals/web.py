@@ -46,14 +46,14 @@ class HistoriaServer(object):
         
         # Get the port number from the controller's settings.
         port = self.controller.config['server']['port']
-        
+        key_file = self.controller.config['server']['cert_file']
         
         HistoriaHTTPHandler.set_controller(self.controller)
                 
         self.server = http.server.HTTPServer(('localhost', int(port)), HistoriaHTTPHandler)
         self.server.socket = ssl.wrap_socket(self.server.socket,
                                        server_side=True,
-                                       certfile='../ssl_cert/historia.pem',
+                                       certfile=key_file,
                                        ssl_version=ssl.PROTOCOL_TLSv1)
         
         # self.server_thread = threading.Thread(target=self.server.serve_forever)

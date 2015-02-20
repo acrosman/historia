@@ -9,7 +9,7 @@
   },
   "server": {
     "port": 4443,
-    "cert_file": "../ssl_cert_/historia.pem"
+    "cert_file": "../keys/historia.pem"
   },
   "logging":{
     "version":1,

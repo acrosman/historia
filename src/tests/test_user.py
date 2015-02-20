@@ -257,7 +257,6 @@ class TestUser(unittest.TestCase):
         self.assertEqual(result[0]['email'], hu.email, "email in the table should match the one on the record.")        
         self.assertEqual(result[0]['enabled'], 1, "enabled in the table should match the one on the record.")        
         self.assertEqual(result[0]['admin'], 0, "admin in the table should match the one on the record.")        
-
         
     def test_40_load(self):
         """HistoriaSetting: load()"""

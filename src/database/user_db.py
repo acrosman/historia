@@ -128,26 +128,6 @@ class HistoriaUserDatabase(HistoriaDatabase, HistoriaDataObject):
         
         ]
         
-    def __setattr__(self, name, value):
-        """
-        Use __setattr__ to detect changes to the object so that we can check
-        the field list for value attributes and to set the dirty bit to see
-        if a save is required. 
-        For a userdb, this also handle password decryption.
-        """
-
-        # Ensure the password in memory is always plain text.
-        if name == 'password' and value is not None:
-            if self.iv != '' and self.iv is not None:
-                value = self._decrypt_password(value, self.iv)
-            else:
-                name = "_password"
-        if name == 'iv' and value is not None:
-            if self._password != '' and self._password is not None:
-                value = self._decrypt_password('_password', value)
-
-        # Since all the general checking is at in HistoriaRecord, do the checking there.
-        HistoriaRecord.__setattr__(self, name, value)
 
     def _encrypt_password(self, value):
         iv = Random.new().read(AES.block_size)
@@ -163,15 +143,23 @@ class HistoriaUserDatabase(HistoriaDatabase, HistoriaDataObject):
     def save(self):
         """Save this record to the database."""
         # encrypt the password before saving, with a new iv
-        self._password = None
-        self.iv = None
-        iv, password = self._encrypt_password(self.password)
-        HistoriaRecord.__setattr__('password', password)
-        HistoriaRecord.__setattr__('iv', iv)
+        iv, en_password = self._encrypt_password(self.password)
+        plain_password = self.password
+        self.password = en_password
+        self.iv = iv
         
         super().save()
 
-
+        self.password = plain_password
+        self._dirty = False
+    
+    def load(self, recordID):
+        """Load record from the database."""
+        super().load(recordID)
+        
+        # decrypt the password from the database
+        self.password = self._decrypt_password(self.password, self.iv)
+        self._dirty = False
 
 if __name__ == '__main__':
     import unittest

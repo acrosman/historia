@@ -64,9 +64,6 @@ class HistoriaDatabase(HistoriaDataObject):
     type_label = "Historia Database"
     machine_type = "historia_database"
     
-    def __new__(cls, database_name):
-        return super(HistoriaDatabase, cls).__new__(cls)
-    
     def __init__(self, database_name):
         self.name = database_name
         self._id = None

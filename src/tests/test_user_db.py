@@ -45,7 +45,7 @@ class TestUserDatabase(unittest.TestCase):
     
     def setUp(self):
         self.config = TestUserDatabase.config
-        
+        self.key_file = self.config['database']['aes_key_file']
         self.testDBName = self.config['database']["main_database"]
         self.default_settings = {
           'user': self.config['database']['user'],
@@ -102,7 +102,7 @@ class TestUserDatabase(unittest.TestCase):
     def test_10_construct(self):
         """UserDatabase: __init__()"""
         
-        db = user_db.HistoriaUserDatabase(self.testDBName)
+        db = user_db.HistoriaUserDatabase(self.testDBName, self.key_file)
         
         self.assertIsInstance(db._logger, logging.Logger, "Default logger isn't a logger")
         self.assertEqual(db.name, self.testDBName, "Name passed to object didn't make it")

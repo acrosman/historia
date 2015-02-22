@@ -122,6 +122,8 @@ class HistoriaUserDatabase(HistoriaDatabase, HistoriaDataObject):
             self._logger.error("Unable to load key data from {0}".format(key_file))
             raise
         
+        self._id = -1
+        
         self._password = None
         
         self.member_classes = [

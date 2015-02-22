@@ -27,8 +27,10 @@ along with historia.  If not, see <http://www.gnu.org/licenses/>.
 import argparse
 import sys
 import pkgutil
-
+import warnings
 import unittest
+
+warnings.simplefilter('default')
 
 from tests import *
 

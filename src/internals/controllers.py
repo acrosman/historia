@@ -82,11 +82,14 @@ class HistoriaCoreController(object):
         except Exception as err:
             raise ConfigurationLoadError("Unable to load default.json configuration file in {0} triggered by {1}".format(file_location, err))
         
+        override_config = {}
         try:
             with open(override_file, 'rt') as f:
                 override_config = json.load(f)
         except Exception as err:
-            override_status = { # we'll log this failure later, but since it's a reasonable condition continue
+            # we'll log this failure later, but since it's a reasonable condition continue
+            # This really should be a warning...
+            override_status = { 
                 'Success': False,
                 'Message': "Failed to load configuration override file {0} due to {1}. This may be an expected result, conitnuing.".format(override_file, str(err))
             }

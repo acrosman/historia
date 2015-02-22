@@ -5,7 +5,7 @@
     "host": "127.0.0.1",
     "main_database":"histora_test_db",
     "user_database_name_prefix":"historia_test",
-    "raise_on_warnings": False,
+    "raise_on_warnings": "False",
     "aes_key_file":"../keys/database_aes.key"
   },
   "server": {
@@ -19,26 +19,54 @@
           "class": "logging.StreamHandler",
           "level": "DEBUG",
           "formatter": "default",
-          "stream": "sys.stderr"
+          "stream": "ext://sys.stderr"
+      },
+      "error_file_handler": {
+          "class": "logging.handlers.RotatingFileHandler",
+          "level": "ERROR",
+          "formatter": "default",
+          "filename": "../logs/historia_errors.log",
+          "maxBytes": 10485760,
+          "backupCount": 10,
+          "encoding": "utf8"
+      },
+      "access_file_handler": {
+          "class": "logging.handlers.RotatingFileHandler",
+          "level": "INFO",
+          "formatter": "default",
+          "filename": "../logs/historia_access.log",
+          "maxBytes": 10485760,
+          "backupCount": 10,
+          "encoding": "utf8"
       }
     },
     "root": {
-      "level":"NOTSET",
+      "level":"CRITICAL",
       "handlers" : ["console"]
     },
     "formatters": {
-      "default": "format=%(asctime)s: %(name)s - %(levelname)s - %(message)s",
-      "datefmt": "%Y-%m-%d %H:%M:%S"
+      "default": {
+        "format": "%(asctime)s: %(name)s - %(levelname)s - %(message)s",
+        "datefmt": "%Y-%m-%d %H:%M:%S"
+      }
     },
     "filters": {},
     "loggers": {
-      "historia.ctrl":{
-        "level":"ERROR",
+      "historia.test":{
+        "level":"DEBUG",
         "handlers" : ["console"]
       },
+      "historia.ctrl":{
+        "level":"DEBUG",
+        "handlers" : ["error_file_handler","access_file_handler"]
+      },
+      "historia.web":{
+        "level":"DEBUG",
+        "handlers" : ["error_file_handler","access_file_handler"]
+      },
       "historia.db":{
-        "level":"ERROR",
-        "handlers" : ["console"]
+        "level":"DEBUG",
+        "handlers" : ["error_file_handler","access_file_handler"]
       }
     },
     "incremental": false,

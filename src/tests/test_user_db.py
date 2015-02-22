@@ -32,17 +32,27 @@ from database import core_data_objects
 from database import exceptions
 from database import user_db
 
+import tests.helper_functions
+
 
 class TestUserDatabase(unittest.TestCase):
     
+    config_location = 'tests/test_config'
+    
+    @classmethod
+    def setUpClass(cls):
+        cls.config = tests.helper_functions.load_configuration(cls.config_location)
+    
     def setUp(self):
-        self.testDBName = "historia_test"
+        self.config = TestUserDatabase.config
+        
+        self.testDBName = self.config['database']["main_database"]
         self.default_settings = {
-          'user': 'historia_root',
-          'password': 'historia',
-          'host': '127.0.0.1',
+          'user': self.config['database']['user'],
+          'password': self.config['database']['password'],
+          'host': self.config['database']['host'],
           'database': '',
-          'raise_on_warnings': False
+          'raise_on_warnings': self.config['database']["raise_on_warnings"]
         }
     
     def tearDown(self):

@@ -54,6 +54,7 @@ class TestUserDatabase(unittest.TestCase):
           'database': '',
           'raise_on_warnings': self.config['database']["raise_on_warnings"]
         }
+        self.db = core_data_objects.HistoriaDatabase(self.testDBName)
     
     def tearDown(self):
         try:
@@ -113,7 +114,8 @@ class TestUserDatabase(unittest.TestCase):
     
     def test_15_internals(self):
         """UserDatabase: __setattr__"""
-        udb = user_db.HistoriaUserDatabase(self.db)
+        #self.database_setup()
+        udb = user_db.HistoriaUserDatabase(self.db, self.key_file)
 
         with self.assertRaises(AttributeError):
             udb.bogus_field = "Junk Data"
@@ -149,7 +151,7 @@ class TestUserDatabase(unittest.TestCase):
     def test_20_generate_DB_SQL(self):
         """UserDatabase: generate database SQL statements"""
         
-        db = user_db.HistoriaUserDatabase(self.testDBName)
+        db = user_db.HistoriaUserDatabase(self.testDBName, self.key_file)
         
         statements = db.generate_database_SQL()
         
@@ -179,7 +181,7 @@ class TestUserDatabase(unittest.TestCase):
         
     def test_30_save(self):
         """UserDatabase: save()"""
-        udb = user_db.HistoriaUserDatabase(self.db)
+        udb = user_db.HistoriaUserDatabase(self.db, self.key_file)
 
         self.assertRaises(exceptions.DataConnectionError, udb.save)
 
@@ -218,7 +220,7 @@ class TestUserDatabase(unittest.TestCase):
     def test_40_load(self):
         """HistoriaSetting: load()"""
         self.database_setup(withTables=True)
-        udb = user_db.HistoriaUserDatabase(self.db)
+        udb = user_db.HistoriaUserDatabase(self.db, self.key_file)
         current_stamp = datetime.datetime.now()
         udb.db_name = "monty_db"
         udb.db_user = "monty"
@@ -247,7 +249,7 @@ class TestUserDatabase(unittest.TestCase):
     def test_50_delete(self):
         """HistoriaSetting: delete()"""
         self.database_setup(withTables=True)
-        udb1 = user_db.HistoriaUserDatabase(self.db)
+        udb1 = user_db.HistoriaUserDatabase(self.db, self.key_file)
         current_stamp = datetime.datetime.now()
         udb.db_name = "monty_db"
         udb.db_user = "monty"

@@ -23,7 +23,7 @@ Created by Aaron Crosman on 2015-02-18.
 """
 
 import unittest
-import logging, sys
+import logging, sys, datetime
 
 import mysql.connector
 
@@ -249,7 +249,7 @@ class TestUserDatabase(unittest.TestCase):
     def test_50_delete(self):
         """HistoriaSetting: delete()"""
         self.database_setup(withTables=True)
-        udb1 = user_db.HistoriaUserDatabase(self.db, self.key_file)
+        udb = user_db.HistoriaUserDatabase(self.db, self.key_file)
         current_stamp = datetime.datetime.now()
         udb.db_name = "monty_db"
         udb.db_user = "monty"

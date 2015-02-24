@@ -5,7 +5,7 @@
     "host": "127.0.0.1",
     "main_database":"histora_test_db",
     "user_database_name_prefix":"historia_test",
-    "raise_on_warnings": "False",
+    "raise_on_warnings": false,
     "aes_key_file":"../keys/database_aes.key"
   },
   "server": {

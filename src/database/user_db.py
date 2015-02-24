@@ -34,103 +34,120 @@ from .settings import *
 from .exceptions import *
 
 
-class HistoriaUserDatabase(HistoriaDatabase, HistoriaDataObject):
+class HistoriaUserDatabase(HistoriaDatabase, HistoriaRecord):
     type_label = "Historia User Database"
     machine_type = "historia_user_database"
     
     _table_fields      = {'id': {
-                                'type':       'int',
-                                'length':     '11',
-                                'signed':     False,
-                                'allow_null': False,
-                                'default':    'AUTO_INCREMENT',
-                                'index':      { 'type':'PRIMARY', 'fields': ('id',)},
-                                'order': 0
-                                },
-                            'db_name': {
-                                'type':       'varchar',
-                                'length': '255',
-                                'allow_null': False,
-                                'index':      { 'type':'UNIQUE', 'fields': ('db_name',)},
-                                'order': 1
-                            },
-                            'uid': {
-                                'type':       'int',
-                                'length':     '11',
-                                'allow_null': False,
-                                'index':      { 'type':'BASIC', 'fields': ('uid',)},
-                                'order': 2
-                            },
-                            'db_password': {
-                                'type': 'longblob',
-                                'allow_null': False,
-                                'order': 3
-                            },
-                            'password_aed_iv': {
-                                'type': 'blob',
-                                'allow_null':False,
-                                'order':4
-                            },
-                            'db_user': {
-                                'type': 'varchar',
-                                'length': '255',
-                                'allow_null': False,
-                                'order': 5
-                            },
-                            'db_address': {
-                                'type': 'char',
-                                'length': '128',
-                                'allow_null': False,
-                                'order': 6
-                            },
-                            'last_record_update':{
-                                'type':'timestamp',
-                                'allow_null': False,
-                                'update_timestamp': True,
-                                'default': 'CURRENT_TIMESTAMP',
-                                'order': 7
-                            },
-                            'created':{
-                                'type':'datetime',
-                                'allow_null': False,
-                                'default': None,
-                                'order': 8
-                            },    
-                            'last_login':{
-                                'type':'datetime',
-                                'allow_null': False,
-                                'default': None,
-                                'order': 9
-                            },
-                            'enabled':{
-                                'type':'tinyint',
-                                'length': 1,
-                                'allow_null': False,
-                                'default':'1',
-                                'order': 10
-                            }
+                            'type':       'int',
+                            'length':     '11',
+                            'signed':     False,
+                            'allow_null': False,
+                            'default':    'AUTO_INCREMENT',
+                            'index':      { 'type':'PRIMARY', 'fields': ('id',)},
+                            'order': 0
+                        },
+                        'db_name': {
+                            'type':       'varchar',
+                            'length': '255',
+                            'allow_null': False,
+                            'index':      { 'type':'UNIQUE', 'fields': ('db_name',)},
+                            'order': 1
+                        },
+                        'uid': {
+                            'type':       'int',
+                            'length':     '11',
+                            'allow_null': False,
+                            'index':      { 'type':'BASIC', 'fields': ('uid',)},
+                            'order': 2
+                        },
+                        'db_password': {
+                            'type': 'longblob',
+                            'allow_null': False,
+                            'order': 3
+                        },
+                        'password_aes_iv': {
+                            'type': 'blob',
+                            'allow_null':False,
+                            'order':4
+                        },
+                        'db_user': {
+                            'type': 'varchar',
+                            'length': '255',
+                            'allow_null': False,
+                            'order': 5
+                        },
+                        'db_address': {
+                            'type': 'char',
+                            'length': '128',
+                            'allow_null': False,
+                            'order': 6
+                        },
+                        'last_record_update':{
+                            'type':'timestamp',
+                            'allow_null': False,
+                            'update_timestamp': True,
+                            'default': 'CURRENT_TIMESTAMP',
+                            'order': 7
+                        },
+                        'created':{
+                            'type':'datetime',
+                            'allow_null': False,
+                            'default': None,
+                            'order': 8
+                        },    
+                        'last_login':{
+                            'type':'datetime',
+                            'allow_null': False,
+                            'default': None,
+                            'order': 9
+                        },
+                        'enabled':{
+                            'type':'tinyint',
+                            'length': 1,
+                            'allow_null': False,
+                            'default':'1',
+                            'order': 10
                         }
+                    }
     
     
     def __init__(self, database_name, key_file):
         super().__init__(database_name)
         
         try:
-            with open (key_file, 'r') as key_data:
+            with open (key_file, 'rb') as key_data:
                 self._aes_key = key_data.read()
         except Exception as err:
             self._logger.error("Unable to load key data from {0}".format(key_file))
             raise
+            
+        # Assign all the attributes for the class list of fields
+        for field in type(self)._table_fields:
+            if field is not 'id':
+                setattr(self, field, None)
+            else:
+                self._id = -1
         
-        self._id = -1
-        
-        self._password = None
+        self.db_password = ''
+        self.database = self
         
         self.member_classes = [
         
         ]
         
-
+    
+    def __setattr__(self, name, value):
+        """Override the __setattr__ provided by HistoriaRecord to allow a special case for member_classes."""
+        
+        valid_db_names = ['member_classes', 'connection_settings', 'name', 'database_defaults', 'connection', 'database']
+        
+        if name in valid_db_names:
+            HistoriaDatabase.__setattr__(self, name, value)
+        else:
+            HistoriaRecord.__setattr__(self, name, value)
+        
+    
     def _encrypt_password(self, value):
         iv = Random.new().read(AES.block_size)
         cipher = AES.new(self._aes_key, AES.MODE_CFB, iv)
@@ -145,14 +162,17 @@ class HistoriaUserDatabase(HistoriaDatabase, HistoriaDataObject):
     def save(self):
         """Save this record to the database."""
         # encrypt the password before saving, with a new iv
-        iv, en_password = self._encrypt_password(self.password)
-        plain_password = self.password
-        self.password = en_password
-        self.iv = iv
+        iv, en_password = self._encrypt_password(self.db_password)
+        plain_password = self.db_password
+        self.db_password = en_password
+        self.password_aes_iv = iv
         
-        super().save()
+        
+        skip_attrs = ['member_classes', 'connection_settings', 'name', 'database_defaults', 'connection']
+        
+        HistoriaRecord.save(self)
 
-        self.password = plain_password
+        self.db_password = plain_password
         self._dirty = False
     
     def load(self, recordID):
@@ -160,7 +180,7 @@ class HistoriaUserDatabase(HistoriaDatabase, HistoriaDataObject):
         super().load(recordID)
         
         # decrypt the password from the database
-        self.password = self._decrypt_password(self.password, self.iv)
+        self.db_password = self._decrypt_password(self.db_password, self.iv)
         self._dirty = False
 
 if __name__ == '__main__':

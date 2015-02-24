@@ -474,6 +474,8 @@ class HistoriaRecord(HistoriaDataObject):
             # A little error checking and cleanup to make sure there is a default
             if 'default' not in self._table_fields[field]:
                 self._table_fields[field]['default'] = None
+            if not self._table_fields[field]['allow_null'] and getattr(self, field) == None and self._table_fields[field]['default'] == None:
+                raise DataSaveError("{0} cannot be Null".format(field))
             if self._table_fields[field]['type'] == 'timestamp':
                 continue # timestamps should be set to care for themselves.
             if self._table_fields[field]['default'] =='AUTO_INCREMENT':

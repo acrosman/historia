@@ -492,6 +492,8 @@ class TestRecord(unittest.TestCase):
         
         self.assertEqual(len(result), 0, "There should nothing in the table now.")
         self.assertEqual(-1, hr.id, "The ID should reset to -1")
+        
+    #TODO:  Add tests for the various _generate_*_SQL() methods
 
         
 class TestSearchObject(unittest.TestCase):

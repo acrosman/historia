@@ -112,8 +112,8 @@ class HistoriaUserDatabase(HistoriaDatabase, HistoriaRecord):
                     }
     
     
-    def __init__(self, database_name, key_file):
-        super().__init__(database_name)
+    def __init__(self, master_database, database_name, key_file):
+        HistoriaDatabase.__init__(self,database_name)
         
         try:
             with open (key_file, 'rb') as key_data:
@@ -130,7 +130,7 @@ class HistoriaUserDatabase(HistoriaDatabase, HistoriaRecord):
                 self._id = -1
         
         self.db_password = ''
-        self.database = self
+        self.database = master_database
         
         self.member_classes = [
         
@@ -151,13 +151,13 @@ class HistoriaUserDatabase(HistoriaDatabase, HistoriaRecord):
     def _encrypt_password(self, value):
         iv = Random.new().read(AES.block_size)
         cipher = AES.new(self._aes_key, AES.MODE_CFB, iv)
-        msg = iv + cipher.encrypt(value)
+        msg = cipher.encrypt(value)
         return (iv, msg)
         
     def _decrypt_password(self, secure_text, iv):
         cipher = AES.new(self._aes_key, AES.MODE_CFB, iv)
         password =  cipher.decrypt(secure_text)
-        return password
+        return password.decode('utf-8')
     
     def save(self):
         """Save this record to the database."""
@@ -180,7 +180,7 @@ class HistoriaUserDatabase(HistoriaDatabase, HistoriaRecord):
         super().load(recordID)
         
         # decrypt the password from the database
-        self.db_password = self._decrypt_password(self.db_password, self.iv)
+        self.db_password = self._decrypt_password(self.db_password, self.password_aes_iv)
         self._dirty = False
 
 if __name__ == '__main__':

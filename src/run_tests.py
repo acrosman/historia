@@ -30,7 +30,6 @@ import pkgutil
 import warnings
 import unittest
 
-warnings.simplefilter('default')
 
 from tests import *
 
@@ -41,9 +40,14 @@ def print_err(*args, **kwargs):
 parser = argparse.ArgumentParser()
 parser.add_argument('-t','--test_group', help="The group of tests to run or 'all' for all tests")
 parser.add_argument('-v','--verbosity', help="The verbosity level for the test runner", type=int, choices=[0,1,2])
+parser.add_argument('-w','--warnings', help="If set, display runtime warnings.", action="store_true")
+
 
 args = parser.parse_args()
 
+if args.warnings:
+    warnings.simplefilter('default')
+    
 test_groups = { 'all':          None, 
                 'core_data':    test_core_data, 
                 'systemdb':     test_system_db, 

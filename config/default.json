@@ -3,6 +3,7 @@
     "user": "historia",
     "password": "historia",
     "host": "127.0.0.1",
+    "local_server_address": "127.0.0.1",
     "main_database":"histora_db",
     "user_database_name_prefix":"historia"
   },

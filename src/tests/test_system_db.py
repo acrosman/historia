@@ -66,18 +66,26 @@ class TestSystemDatabase(unittest.TestCase):
             if self.db.connected:
                 try:
                     cur = self.db.cursor()
-                    cur.execute("DROP DATABASE `{0}`".format(self.test_master_db_name))
+                    cur.execute("DROP DATABASE IF EXISTS `{0}`".format(self.test_master_db_name))
                     self.db.commit()
                 except Exception as err:
                     #Say something if we fail in the hopes some fool reads the output...
                     print("Unable to drop test database: {0} due to {1}".format(self.test_master_db_name, err))
                 try:
-                    cur.execute("DROP DATABASE `{0}`".format(self.test_user_db_name))
+                    cur.execute("DROP DATABASE IF EXISTS `{0}`".format(self.test_user_db_name))
                     self.db.commit()
                 except Exception as err:
                     #Say something if we fail in the hopes some fool reads the output...
                     print("Unable to drop test database: {0} due to {1}".format(self.test_user_db_name, err))
-
+                try:
+                    cur.execute("DROP USER {0}@{1}".format(self.test_user_db_name[:16], self.db.local_address))
+                    cur.execute("FLUSH PRIVILEGES")
+                    self.db.commit()
+                except Exception as err:
+                    pass # This throws errors when the users doesn't exist.
+                
+                                    
+                    
                 self.db.disconnect()
         except:
             pass
@@ -87,6 +95,14 @@ class TestSystemDatabase(unittest.TestCase):
         """SystemDatabase: classVariables"""
         self.assertEqual(system_db.HistoriaSystemDatabase.type_label, "Historia System Database", "System DB label is wrong")
         self.assertEqual(system_db.HistoriaSystemDatabase.machine_type, "historia_system_database", "System DB machine type is wrong")
+    
+    def test_05_staticMethods(self):
+        """SystemDatabase: Random String generator"""
+        length = 32
+        
+        randString = system_db.HistoriaSystemDatabase.str_generator(length)
+        
+        self.assertEqual(len(randString), length, "Wrong length string generated")
     
     def test_10_construct(self):
         """SystemDatabase: __init__()"""
@@ -100,6 +116,10 @@ class TestSystemDatabase(unittest.TestCase):
         self.assertEqual(len(self.db.member_classes), 3, "Incorrect number of member classes")
         self.assertEqual(self.db.database_defaults['charset'], 'utf8', 'System database should always use UTF-8')
         self.assertIsNone(self.db.connection, "Where did the database get a connection object already")
+        self.assertEqual(self.db.local_address, 'localhost', "Local server address has incorrect default")
+        
+        self.db.local_address = self.config['database']['local_server_address']
+        self.assertEqual(self.db.local_address, self.config['database']['local_server_address'], "Local server address not set correctly")
     
     def test_20_generate_SQL(self):
         """SystemDatabase: generate database SQL statements"""
@@ -160,20 +180,49 @@ class TestSystemDatabase(unittest.TestCase):
         self.db.createDatabase(udb)
         
         self.assertTrue(udb.connected, "User database not connected after creation")
-        
+        self.assertEqual(udb.db_user, udb.name[:16], "User name for MySQL user not generated correctly.")
         cur = self.db.cursor()
-
+        
+        # Check for database
         sql = "SHOW DATABASES;"
         cur.execute(sql)
         result = [tbl['Database'] for tbl in cur.fetchall()]
         self.assertIn(udb.name, result, "User database doesn't appear to exist")
         
+        # Check db user
+        sql = "USE mysql"
+        cur.execute(sql)
+        sql = """SELECT `user`.`User` AS UserName, `db`.* 
+                    FROM `user` LEFT JOIN `db` ON `user`.`User` = `db`.`User` 
+                    WHERE `user`.`User` =  %(user)s AND `user`.`Password` = PASSWORD(%(password)s)"""
+        cur.execute(sql,{'user':udb.db_user, 'password':udb.db_password})
+        result = cur.fetchall()
+        self.assertEqual(len(result), 1, "There should be one and one 1 reference for this user in MySQL")
+        result = result[0]
+        self.assertEqual(result['UserName'].decode(), udb.db_user, "Wrong user name set on new user (huh?)")
+        self.assertEqual(result['User'].decode(), udb.db_user, "Wrong user name set on new user in db table (huh?)")
+        self.assertEqual(result['Host'].decode(), self.db.local_address, "Wrong host set on new user")
+        self.assertEqual(result['Db'].decode(), udb.name, "Wrong database used for new user's access (Crap)")
+        yes_privs = ['Select_priv', 'Insert_priv','Update_priv','Delete_priv',
+                     'Create_priv', 'Drop_priv', 'References_priv', 'Index_priv',
+                     'Alter_priv','Create_tmp_table_priv', 'Lock_tables_priv',
+                     'Create_view_priv','Show_view_priv','Create_routine_priv',
+                     'Alter_routine_priv','Execute_priv','Event_priv','Trigger_priv']
+        no_privs = ['Grant_priv']
+        
+        for priv in yes_privs:
+            self.assertEqual(result[priv], 'Y', "User was not given: {0}".format(priv))
+        for priv in no_privs:
+            self.assertEqual(result[priv], 'N', "User was given: {0}".format(priv))
+        
+        # Check that udb is connected
         udb_cur = udb.cursor()
         sql = "SELECT DATABASE();"
         udb_cur.execute(sql)
         result = udb_cur.fetchall()
         self.assertEqual(udb.name, result[0]['DATABASE()'], "Database in use is not me")
-
+        
+        # Check structure
         sql = "SHOW TABLES;"
         udb_cur.execute(sql)
         result = udb_cur.fetchall()

@@ -120,7 +120,7 @@ class TestUserDatabase(unittest.TestCase):
         db = user_db.HistoriaUserDatabase(self.db, self.test_user_db_name, self.key_file)
         
         self.assertIsInstance(db._logger, logging.Logger, "Default logger isn't a logger")
-        self.assertEqual(db.name, self.test_user_db_name, "Name passed to object didn't make it")
+        self.assertEqual(db.name, self.test_user_db_name.lower(), "Name passed to object didn't make it")
         self.assertEqual(db._id, -1, "ID should be -1 for user databases")
         self.assertEqual(len(db.connection_settings), 5, "Incorrect number of DB settings")
         self.assertEqual(db.database_defaults['charset'], 'utf8', 'User database should always use UTF-8')
@@ -134,7 +134,7 @@ class TestUserDatabase(unittest.TestCase):
         with self.assertRaises(AttributeError):
             udb.bogus_field = "Junk Data"
 
-        attrs = ['db_name', 'db_user', 'db_address', 'created', 'last_record_update', 'last_login']
+        attrs = ['name', 'db_user', 'db_address', 'created', 'last_record_update', 'last_login']
 
         # All of the listed fields on a User should raise a ValueError when they are fed an integer
         for attr in attrs:
@@ -146,7 +146,7 @@ class TestUserDatabase(unittest.TestCase):
         self.assertEqual(udb._anything, "ok", "Assignment of _ variables works fine...except that they fail all the time")
 
         current_stamp = datetime.datetime.now()
-        udb.db_name = "monty_db"
+        udb.name = "monty_db"
         udb.db_user = "monty"
         udb.db_password = "Plain text password"
         udb.db_address = "127.0.0.1"
@@ -154,7 +154,7 @@ class TestUserDatabase(unittest.TestCase):
         udb.last_login = current_stamp
         udb.enabled = True
         self.assertEqual(-1, udb.id, "ID is still -1")
-        self.assertEqual(udb.db_name, "monty_db", "Assignment of setting name failed.")
+        self.assertEqual(udb.name, "monty_db", "Assignment of setting name failed.")
         self.assertEqual(udb.db_password, "Plain text password", "Assignment of password failed")
         self.assertEqual(udb.db_address, "127.0.0.1", "Assignment of setting address failed.")
         self.assertEqual(udb.created, current_stamp, "Assignment of setting created timestamp failed.")
@@ -204,7 +204,7 @@ class TestUserDatabase(unittest.TestCase):
         self.create_record_table()
         
         current_stamp = datetime.datetime.now()
-        udb.db_name = "monty_db"
+        udb.name = "monty_db"
         udb.db_user = "monty"
         udb.db_address = "127.0.0.1"
         udb.db_password = "Plain text password"
@@ -226,7 +226,7 @@ class TestUserDatabase(unittest.TestCase):
         result = self.db.execute_select(select)
 
         self.assertEqual(len(result), 1, "There should be 1 and only 1 entry in the table.")
-        self.assertEqual(result[0]['db_name'], udb.db_name, "name in the table should match the name on the record.")
+        self.assertEqual(result[0]['name'], udb.name, "name in the table should match the name on the record.")
         self.assertNotEqual(result[0]['db_password'], udb.db_password, "password in the table should not match the one on the record.")        
         self.assertEqual(result[0]['db_user'], udb.db_user, "db_user in the table should match the one on the record.")
         self.assertAlmostEqual(result[0]['created'], udb.created, delta=datetime.timedelta(seconds=1), msg="created in the table should match the one on the record.")        
@@ -240,7 +240,7 @@ class TestUserDatabase(unittest.TestCase):
 
         udb = user_db.HistoriaUserDatabase(self.db, self.test_user_db_name, self.key_file)
         current_stamp = datetime.datetime.now()
-        udb.db_name = "monty_db"
+        udb.name = "monty_db"
         udb.db_user = "monty"
         udb.db_address = "127.0.0.1"
         udb.db_password = "Plain text password"
@@ -257,7 +257,7 @@ class TestUserDatabase(unittest.TestCase):
         self.assertEqual(udb.id, udb2.id, "IDs on original and loaded object don't match")
         self.assertFalse(udb2._dirty, "The dirty bit is wrong after load.")
         self.assertEqual(udb2, udb, "The two copies of the record should consider themselves equal.")
-        self.assertEqual(udb2.db_name, udb.db_name, "name in the table should match the name on the record.")
+        self.assertEqual(udb2.name, udb.name, "name in the table should match the name on the record.")
         self.assertEqual(udb2.uid, udb.uid, "uid in the table should match the uid on the record.")
         self.assertEqual(udb2.db_password, udb.db_password, "password in the table should match the one on the record.")        
         self.assertEqual(udb2.db_user, udb.db_user, "db_user in the table should match the one on the record.")        
@@ -272,7 +272,7 @@ class TestUserDatabase(unittest.TestCase):
 
         udb = user_db.HistoriaUserDatabase(self.db, self.test_user_db_name, self.key_file)
         current_stamp = datetime.datetime.now()
-        udb.db_name = "monty_db"
+        udb.name = "monty_db"
         udb.db_user = "monty"
         udb.db_address = "127.0.0.1"
         udb.db_password = "Plain text password"
@@ -292,6 +292,18 @@ class TestUserDatabase(unittest.TestCase):
         self.assertEqual(len(result), 0, "There should nothing in the table now.")
         self.assertEqual(-1, udb.id, "The ID should reset to -1")
     
+    def test_60_connect(self):
+        """UserDatabase: Connect to db"""
+        
+        udb = user_db.HistoriaUserDatabase(self.db, self.test_user_db_name, self.key_file)
+        udb.db_user = self.config['database']['user']
+        udb.db_password = self.config['database']['password']
+        udb.db_address =  self.config['database']['host']
+        udb.name = self.test_master_db_name #Normally this would be wrong, but it's needed for testing.
+        
+        udb.connect()
+        
+        self.assertTrue(udb.connected, "User database unable to connect when setting connection values.")
 
         
 if __name__ == '__main__':

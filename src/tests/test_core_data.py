@@ -137,7 +137,13 @@ class TestDatabase(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             db.name = "Junk Data"
+        with self.assertRaises(ValueError):
             db.name = "valid+junk"
+        with self.assertRaises(ValueError):
+            db.name = 12341234
+        
+        db.name = "valid_database_name"
+        self.assertEqual(db.name, "valid_database_name", "Name not assigned correctly after init")
 
     
     def test_10_connections(self):

@@ -47,35 +47,35 @@ class HistoriaUserDatabase(HistoriaDatabase, HistoriaRecord):
                             'index':      { 'type':'PRIMARY', 'fields': ('id',)},
                             'order': 0
                         },
-                        'db_name': {
+                        'name': {
                             'type':       'varchar',
-                            'length': '255',
+                            'length':     '255',
                             'allow_null': False,
-                            'index':      { 'type':'UNIQUE', 'fields': ('db_name',)},
-                            'order': 1
+                            'index':      { 'type':'UNIQUE', 'fields': ('name',)},
+                            'order':      1
                         },
                         'uid': {
                             'type':       'int',
                             'length':     '11',
                             'allow_null': False,
                             'index':      { 'type':'BASIC', 'fields': ('uid',)},
-                            'order': 2
+                            'order':      2
                         },
                         'db_password': {
-                            'type': 'longblob',
-                            'allow_null': False,
-                            'order': 3
+                            'type':         'longblob',
+                            'allow_null':   False,
+                            'order':        3
                         },
                         'password_aes_iv': {
-                            'type': 'blob',
+                            'type':     'blob',
                             'allow_null':False,
-                            'order':4
+                            'order':    4
                         },
                         'db_user': {
-                            'type': 'varchar',
-                            'length': '255',
-                            'allow_null': False,
-                            'order': 5
+                            'type':         'varchar',
+                            'length':       '255',
+                            'allow_null':   False,
+                            'order':        5
                         },
                         'db_address': {
                             'type': 'char',
@@ -124,7 +124,7 @@ class HistoriaUserDatabase(HistoriaDatabase, HistoriaRecord):
             
         # Assign all the attributes for the class list of fields
         for field in type(self)._table_fields:
-            if field is not 'id':
+            if field != 'id' and field != 'name':
                 setattr(self, field, None)
             else:
                 self._id = -1
@@ -147,7 +147,7 @@ class HistoriaUserDatabase(HistoriaDatabase, HistoriaRecord):
         else:
             HistoriaRecord.__setattr__(self, name, value)
         
-    
+        
     def _encrypt_password(self, value):
         iv = Random.new().read(AES.block_size)
         cipher = AES.new(self._aes_key, AES.MODE_CFB, iv)
@@ -168,7 +168,7 @@ class HistoriaUserDatabase(HistoriaDatabase, HistoriaRecord):
         self.password_aes_iv = iv
         
         
-        skip_attrs = ['member_classes', 'connection_settings', 'name', 'database_defaults', 'connection']
+        skip_attrs = ['member_classes', 'connection_settings', 'database_defaults', 'connection']
         
         HistoriaRecord.save(self)
 
@@ -182,6 +182,19 @@ class HistoriaUserDatabase(HistoriaDatabase, HistoriaRecord):
         # decrypt the password from the database
         self.db_password = self._decrypt_password(self.db_password, self.password_aes_iv)
         self._dirty = False
+    
+    def connect(self):
+        """Connect to the database, make sure connection settings are current first"""
+        
+        self.connection_settings = {
+          'user': self.db_user,
+          'password': self.db_password,
+          'host': self.db_address,
+          'database': self.name,
+          'raise_on_warnings': False
+        }
+        
+        HistoriaDatabase.connect(self)
 
 if __name__ == '__main__':
     import unittest

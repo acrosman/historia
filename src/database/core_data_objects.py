@@ -83,6 +83,8 @@ class HistoriaDatabase(HistoriaDataObject):
     def __setattr__(self, name, value):
         # Don't allow a database name that would be invalide to MySQL
         if name == 'name' and value is not None:
+            if not isinstance(value, str):
+                raise ValueError("Database name must be a string. Cannot set database name to {0}".format(value))
             value = value.lower()
             chars = set(string.ascii_letters + string.digits + '_')
             if not all((c in chars) for c in value):
@@ -328,6 +330,9 @@ class HistoriaRecord(HistoriaDataObject):
     def save(self):
         """Save this record to the database."""
         
+        if not self.database.connected:
+            raise DataConnectionError("Cannot save without an active database connection")
+        
         if self.id == -1:
             self._id = self.database.execute_insert(self._generate_insert_SQL())
         else:
@@ -484,13 +489,21 @@ class HistoriaRecord(HistoriaDataObject):
             # A little error checking and cleanup to make sure there is a default
             if 'default' not in self._table_fields[field]:
                 self._table_fields[field]['default'] = None
-            if not self._table_fields[field]['allow_null'] and getattr(self, field) == None and self._table_fields[field]['default'] == None:
-                raise DataSaveError("{0} cannot be Null".format(field))
+                
             if self._table_fields[field]['type'] == 'timestamp':
                 continue # timestamps should be set to care for themselves.
+
+            if not self._table_fields[field]['allow_null'] and \
+                    getattr(self, field) == None and \
+                    self._table_fields[field]['default'] == None and \
+                    self._table_fields[field]['type'] != 'datetime':
+                raise DataSaveError("{0} cannot be Null".format(field))
+                
             if self._table_fields[field]['default'] =='AUTO_INCREMENT':
                 fields[field] = None
-            elif self._table_fields[field]['type'] == 'datetime' and not self._table_fields[field]['allow_null'] and getattr(self, field) == None:
+            elif self._table_fields[field]['type'] == 'datetime' and \
+                    not self._table_fields[field]['allow_null'] and \
+                    getattr(self, field) == None:
                 statement += "`{0}`,".format(field)
                 value_placeholders += "NOW(),"
             else:

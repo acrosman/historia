@@ -30,7 +30,10 @@ import mysql.connector
 from database import core_data_objects
 from database import exceptions
 
-class Test(unittest.TestCase):
+import tests.helper_functions
+
+
+class TestDataObject(unittest.TestCase):
     def setUp(self):
         pass
     
@@ -56,15 +59,23 @@ class Test(unittest.TestCase):
         
 
 class TestDatabase(unittest.TestCase):
+
+    config_location = 'tests/test_config'
+
+    @classmethod
+    def setUpClass(cls):
+        cls.config = tests.helper_functions.load_configuration(cls.config_location)
+
     def setUp(self):
+        self.config = TestDatabase.config
+        self.testdb_name = self.config['database']["main_database"]
         self.default_settings = {
-          'user': 'historia_root',
-          'password': 'historia',
-          'host': '127.0.0.1',
+          'user': self.config['database']['user'],
+          'password': self.config['database']['password'],
+          'host': self.config['database']['host'],
           'database': '',
-          'raise_on_warnings': False
+          'raise_on_warnings': self.config['database']["raise_on_warnings"]
         }
-        self.testdb_name = "historia_testdb"
         
     
     def tearDown(self):
@@ -103,14 +114,11 @@ class TestDatabase(unittest.TestCase):
     
     def test_01_construct(self):
         """HistoriaDatabase: Create new """
-        #  Covering the code in:
-        #     def __new__(cls, database_name):
-        #     def __init__(self, database_name):
         testName = "Historia_Tests"
         db = core_data_objects.HistoriaDatabase(testName)
         
         # Check that all default values are there and correct
-        self.assertEqual(db.name, testName, "Name not assigned correctly during init")
+        self.assertEqual(db.name, testName.lower(), "Name not assigned correctly during init")
         self.assertIsNone(db.id, "id not set to None during construction")
         self.assertIsInstance(db.connection_settings, dict, "Connections settings aren't a dict")
         self.assertIsInstance(db.member_classes, list, "member classes aren't a dict")
@@ -118,6 +126,19 @@ class TestDatabase(unittest.TestCase):
         self.assertIsNone(db.connection, "connection not set to None during construction")
         self.assertIsInstance(db._logger, logging.Logger, "logger isn't actually a logger.")
         self.assertFalse(db.connected, "Database not reporting it self as disconnected")
+
+    def test_05_internals(self):
+        """HistoriaDatabase: Test name change handling  """
+        testName = "Historia_Tests"
+        db = core_data_objects.HistoriaDatabase(testName)
+
+        # Check that all default values are there and correct
+        self.assertEqual(db.name, testName.lower(), "Name not assigned correctly during init")
+
+        with self.assertRaises(ValueError):
+            db.name = "Junk Data"
+            db.name = "valid+junk"
+
     
     def test_10_connections(self):
         """HistoriaDatabase: Connect"""
@@ -270,18 +291,26 @@ class TestDatabase(unittest.TestCase):
     
 class TestRecord(unittest.TestCase):
     
+    config_location = 'tests/test_config'
+
+
+    @classmethod
+    def setUpClass(cls):
+        cls.config = tests.helper_functions.load_configuration(cls.config_location)
+
     def setUp(self):
-        self.testdb_name = "historia_testdb"
+        self.config = TestRecord.config
+        self.testdb_name = self.config['database']["main_database"]
+        self.default_settings = {
+          'user': self.config['database']['user'],
+          'password': self.config['database']['password'],
+          'host': self.config['database']['host'],
+          'database': '',
+          'raise_on_warnings': self.config['database']["raise_on_warnings"]
+        }
         self.db = core_data_objects.HistoriaDatabase(self.testdb_name)
     
     def database_setup(self, withTables=False):
-        self.default_settings = {
-          'user': 'historia_root',
-          'password': 'historia',
-          'host': '127.0.0.1',
-          'database': '',
-          'raise_on_warnings': False
-        }
         
         statements = self.db.generate_database_SQL()
         self.db.connection_settings = self.default_settings
@@ -498,17 +527,24 @@ class TestRecord(unittest.TestCase):
         
 class TestSearchObject(unittest.TestCase):
 
-    def setUp(self):
-        self.testdb_name = "historia_testdb"
-        self.db = core_data_objects.HistoriaDatabase(self.testdb_name)
-        self.default_settings = {
-          'user': 'historia_root',
-          'password': 'historia',
-          'host': '127.0.0.1',
-          'database':"",
-          'raise_on_warnings': False
-        }
+    config_location = 'tests/test_config'
 
+
+    @classmethod
+    def setUpClass(cls):
+        cls.config = tests.helper_functions.load_configuration(cls.config_location)
+
+    def setUp(self):
+        self.config = TestSearchObject.config
+        self.testdb_name = self.config['database']["main_database"]
+        self.default_settings = {
+          'user': self.config['database']['user'],
+          'password': self.config['database']['password'],
+          'host': self.config['database']['host'],
+          'database': '',
+          'raise_on_warnings': self.config['database']["raise_on_warnings"]
+        }
+        self.db = core_data_objects.HistoriaDatabase(self.testdb_name)
 
     def database_setup(self, withTables=False):
 

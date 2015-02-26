@@ -30,7 +30,7 @@ Created by Aaron Crosman on 2015-01-20.
 import sys, os
 import logging
 import datetime
-import json
+import json, string
 
 import mysql.connector
 
@@ -79,6 +79,16 @@ class HistoriaDatabase(HistoriaDataObject):
             'charset': 'utf8'
         }
         self.connection = None
+    
+    def __setattr__(self, name, value):
+        # Don't allow a database name that would be invalide to MySQL
+        if name == 'name' and value is not None:
+            value = value.lower()
+            chars = set(string.ascii_letters + string.digits + '_')
+            if not all((c in chars) for c in value):
+                raise ValueError("Cannot set database name to {0}".format(value))
+        
+        HistoriaDataObject.__setattr__(self, name, value)
     
     def connect(self):
         try:

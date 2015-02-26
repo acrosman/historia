@@ -235,7 +235,7 @@ class TestUserDatabase(unittest.TestCase):
         self.assertEqual(result[0]['db_address'], udb.db_address, "db_address in the table should match the one on the record.")
 
     def test_40_load(self):
-        """HistoriaSetting: load()"""
+        """UserDatabase: load()"""
         self.create_record_table()
 
         udb = user_db.HistoriaUserDatabase(self.db, self.test_user_db_name, self.key_file)
@@ -267,7 +267,7 @@ class TestUserDatabase(unittest.TestCase):
         self.assertEqual(udb2.db_address, udb.db_address, "db_address in the table should match the one on the record.")        
 
     def test_50_delete(self):
-        """HistoriaSetting: delete()"""
+        """UserDatabase: delete()"""
         self.create_record_table()
 
         udb = user_db.HistoriaUserDatabase(self.db, self.test_user_db_name, self.key_file)
@@ -291,7 +291,8 @@ class TestUserDatabase(unittest.TestCase):
 
         self.assertEqual(len(result), 0, "There should nothing in the table now.")
         self.assertEqual(-1, udb.id, "The ID should reset to -1")
-        
+    
+
         
 if __name__ == '__main__':
     unittest.main()

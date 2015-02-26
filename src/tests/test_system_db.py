@@ -33,18 +33,31 @@ from database import core_data_objects
 from database import exceptions
 from database import system_db
 
+import tests.helper_functions
+
 
 class TestSystemDatabase(unittest.TestCase):
+
+    config_location = 'tests/test_config'
+
+    @classmethod
+    def setUpClass(cls):
+        cls.config = tests.helper_functions.load_configuration(cls.config_location)
+
     
     def setUp(self):
-        self.testDBName = "historia_test"
+        self.config = TestSystemDatabase.config
+        self.key_file = self.config['server']['aes_key_file']
+        self.test_master_db_name = self.config['database']["main_database"]
+        self.test_user_db_name = '_'.join([self.config['database']["user_database_name_prefix"], 'user_db'])
         self.default_settings = {
-          'user': 'historia_root',
-          'password': 'historia',
-          'host': '127.0.0.1',
+          'user': self.config['database']['user'],
+          'password': self.config['database']['password'],
+          'host': self.config['database']['host'],
           'database': '',
-          'raise_on_warnings': False
+          'raise_on_warnings': self.config['database']["raise_on_warnings"]
         }
+        
         
     def test_00_classVariables(self):
         """SystemDatabase: classVariables"""
@@ -54,10 +67,10 @@ class TestSystemDatabase(unittest.TestCase):
     def test_10_construct(self):
         """SystemDatabase: __init__()"""
         
-        db = system_db.HistoriaSystemDatabase(self.testDBName)
+        db = system_db.HistoriaSystemDatabase(self.test_master_db_name)
         
         self.assertIsInstance(db._logger, logging.Logger, "Default logger isn't a logger")
-        self.assertEqual(db.name, self.testDBName, "Name passed to object didn't make it")
+        self.assertEqual(db.name, self.test_master_db_name, "Name passed to object didn't make it")
         self.assertIsNone(db._id, "ID should be none for databases")
         self.assertEqual(len(db.connection_settings), 5, "Incorrect number of DB settings")
         self.assertEqual(len(db.member_classes), 3, "Incorrect number of member classes")
@@ -67,19 +80,19 @@ class TestSystemDatabase(unittest.TestCase):
     def test_20_generate_SQL(self):
         """SystemDatabase: generate database SQL statements"""
         
-        db = system_db.HistoriaSystemDatabase(self.testDBName)
+        db = system_db.HistoriaSystemDatabase(self.test_master_db_name)
         
         statements = db.generate_database_SQL()
         
         self.assertEqual(len(statements), (len(db.member_classes)*2)+2, "There should be 2 statements for each class + 2 for the database itself")
         
-        self.assertIn(self.testDBName, statements[0][0], "DB name not in db create statement")
-        self.assertIn(self.testDBName, statements[1][0], "DB name not in db use statement")
+        self.assertIn(self.test_master_db_name, statements[0][0], "DB name not in db create statement")
+        self.assertIn(self.test_master_db_name, statements[1][0], "DB name not in db use statement")
         
     
     def test_30_createDatabase(self):
         """SystemDatabase: Create a new database"""
-        db = system_db.HistoriaSystemDatabase(self.testDBName)
+        db = system_db.HistoriaSystemDatabase(self.test_master_db_name)
         db.connection_settings = self.default_settings
         
         db.createDatabase(db) #right now there is only one database avialble to create.
@@ -107,6 +120,38 @@ class TestSystemDatabase(unittest.TestCase):
         self.assertEqual(len(result), len(db.member_classes), "Wrong number of tables in database")
         for tbl in result:
             self.assertIn(tbl[col], class_names,"Table {0} not in my table list.".format(tbl[col]))
+
+    def test_40_createUserDatabase(self):
+        """SystemDatabase: Create a new user database"""
+        db = system_db.HistoriaSystemDatabase(self.test_master_db_name)
+        db.connection_settings = self.default_settings
+
+        db.createDatabase(db) #right now there is only one database avialble to create.
+
+        # db should now exist and be connected to itself....let's find out.
+        self.assertTrue(db.connected, "DB not connected after creating itself")
+
+        cur = db.cursor()
+
+        sql = "SHOW DATABASES;"
+        cur.execute(sql)
+        result = [tbl['Database'] for tbl in cur.fetchall()]
+        self.assertIn(db.name, result, "My database doesn't appear to exist")
+
+        sql = "SELECT DATABASE();"
+        cur.execute(sql)
+        result = cur.fetchall()
+        self.assertEqual(db.name, result[0]['DATABASE()'], "Database in use is not me")
+
+        sql = "SHOW TABLES;"
+        cur.execute(sql)
+        result = cur.fetchall()
+        col = "Tables_in_{0}".format(db.name)
+        class_names = [n.machine_type for n in db.member_classes]
+        self.assertEqual(len(result), len(db.member_classes), "Wrong number of tables in database")
+        for tbl in result:
+            self.assertIn(tbl[col], class_names,"Table {0} not in my table list.".format(tbl[col]))
+
         
         
 if __name__ == '__main__':

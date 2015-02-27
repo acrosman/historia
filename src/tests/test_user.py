@@ -44,16 +44,16 @@ class TestUser(unittest.TestCase):
 
 
     def setUp(self):
-        self.testdb_name = TestUser.config['database']["main_database"]
+        self.testdb_name = type(self).config['database']["main_database"]
         self.db = core_data_objects.HistoriaDatabase(self.testdb_name)
     
     def database_setup(self, withTables=False):
         self.default_settings = {
-          'user': TestUser.config['database']['user'],
-          'password': TestUser.config['database']['password'],
-          'host': TestUser.config['database']['host'],
+          'user': type(self).config['database']['user'],
+          'password': type(self).config['database']['password'],
+          'host': type(self).config['database']['host'],
           'database': '',
-          'raise_on_warnings': TestUser.config['database']["raise_on_warnings"]
+          'raise_on_warnings': type(self).config['database']["raise_on_warnings"]
         }
         
         statements = self.db.generate_database_SQL()

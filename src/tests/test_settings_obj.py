@@ -31,19 +31,28 @@ from database import settings
 from database import core_data_objects
 from database import exceptions
 
+import tests.helper_functions
+
 
 class TestSettingRecord(unittest.TestCase):
+    
+    config_location = 'tests/test_config'
+    
+    @classmethod
+    def setUpClass(cls):
+        cls.config = tests.helper_functions.load_configuration(cls.config_location)
+
     def setUp(self):
-        self.testdb_name = "historia_testdb"
+        self.testdb_name = type(self).config['database']["main_database"]
         self.db = core_data_objects.HistoriaDatabase(self.testdb_name)
     
     def database_setup(self, withTables=False):
         self.default_settings = {
-          'user': 'historia_root',
-          'password': 'historia',
-          'host': '127.0.0.1',
+          'user': type(self).config['database']['user'],
+          'password': type(self).config['database']['password'],
+          'host': type(self).config['database']['host'],
           'database': '',
-          'raise_on_warnings': False
+          'raise_on_warnings': type(self).config['database']["raise_on_warnings"]
         }
         
         statements = self.db.generate_database_SQL()

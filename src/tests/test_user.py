@@ -44,7 +44,7 @@ class TestUser(unittest.TestCase):
 
 
     def setUp(self):
-        self.testdb_name = "historia_testdb"
+        self.testdb_name = TestUser.config['database']["main_database"]
         self.db = core_data_objects.HistoriaDatabase(self.testdb_name)
     
     def database_setup(self, withTables=False):

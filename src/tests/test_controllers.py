@@ -33,15 +33,25 @@ from database import core_data_objects
 from database import system_db
 from database import user
 
+import tests.helper_functions
+
+
 class TestHistoriaCoreController(unittest.TestCase):
+    
+    config_location = 'tests/test_config'
+    
+    @classmethod
+    def setUpClass(cls):
+        cls.config = tests.helper_functions.load_configuration(cls.config_location)
+
     def setUp(self):
-        self.testDBName = "historia_test"
+        self.testDBName = TestHistoriaCoreController.config['database']["main_database"]
         self.default_settings = {
-          'user': 'historia_root',
-          'password': 'historia',
-          'host': '127.0.0.1',
+          'user': TestHistoriaCoreController.config['database']['user'],
+          'password': TestHistoriaCoreController.config['database']['password'],
+          'host': TestHistoriaCoreController.config['database']['host'],
           'database': '',
-          'raise_on_warnings': False
+          'raise_on_warnings': TestHistoriaCoreController.config['database']["raise_on_warnings"]
         }
     
     def tearDown(self):

@@ -72,21 +72,11 @@ class TestHistoriaCoreController(unittest.TestCase):
         
         obj = controllers.HistoriaCoreController()
         
-        self.assertIsInstance(obj._logger, logging.Logger, "Default logger isn't a logger")
-        self.assertIsNone(obj.database, "Database didn't initalize to None when none provided")
+        self.assertIsInstance(obj.logger, logging.Logger, "Default logger isn't a logger")
+        self.assertIsInstance(obj.database, system_db.HistoriaSystemDatabase, "Database didn't initalize to None when none provided")
         self.assertIsNone(obj.interface, "Interface didn't initalize to None when none provided")
         self.assertEqual(obj.active_users, {}, "Active users dict isn't just an empty Dictionary")
         self.assertEqual(obj.active_user_databases, {}, "Active dabases dict isn't just an empty Dictionary")
-        
-    def test_05_construct(self):
-        """HistoriaCoreController: init with database"""
-        
-        db = core_data_objects.HistoriaDatabase(self.testDBName)
-        
-        obj = controllers.HistoriaCoreController(db)
-        
-        self.assertIs(obj.database, db, "Database didn't initalize to the right db when provided")
-        
     
     def test_10_create_database(self):
         """HistoriaCoreController: create_database(self, database_name, connection_settings, db_type = "user")"""

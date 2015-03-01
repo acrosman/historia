@@ -142,11 +142,14 @@ class HistoriaCoreController(object):
             else:
                 request_handler.send_record(session,result)
         except Exception as err:
-            self.logger.error("Error handling request: {0}.{1} with {2} for {3}. Error: {4}".format(object, request, parameters, session, err))
-            request_handler.send_error(500, "Error processing request.")
+            self.logger.error("Error handling request: {0}.{1} with {2} for {3}. Error: {4}".format(object, request, parameters, session.id, err))
+            request_handler.send_error(500, "Error processing request")
         
     
     def process_login(self, session, parameters):
+        if 'user' not in parameters or 'password' not in parameters:
+            return False
+        
         user =  self.authenticate_user(parameters['user'], parameters['password'])
         
         if user:

@@ -144,8 +144,13 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
         
     def send_record(self, session, record):
         self._send_headers(200, 'json', session)
-        self.wfile.write(record.to_JSON().encode('utf-8'))
-    
+        try:
+            data = record.to_JSON()
+        except AttributeError as err:
+            data = json.dumps(record)
+        
+        self.wfile.write(data.encode('utf-8'))
+        
     def send_file(self, session, file_path):
         """Send a file. Path must be within file_base_path. If file_base_path is empty a 403 will always be raised."""
         if HistoriaHTTPHandler.file_base_path == "":

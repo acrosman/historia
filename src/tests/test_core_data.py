@@ -24,6 +24,7 @@ Created by Aaron Crosman on 2015-02-02.
 
 import unittest
 import logging, sys
+import json
 
 import mysql.connector
 
@@ -112,7 +113,7 @@ class TestDatabase(unittest.TestCase):
         
         return db
     
-    def test_01_construct(self):
+    def test_001_construct(self):
         """HistoriaDatabase: Create new """
         testName = "Historia_Tests"
         db = core_data_objects.HistoriaDatabase(testName)
@@ -127,7 +128,7 @@ class TestDatabase(unittest.TestCase):
         self.assertIsInstance(db._logger, logging.Logger, "logger isn't actually a logger.")
         self.assertFalse(db.connected, "Database not reporting it self as disconnected")
 
-    def test_05_internals(self):
+    def test_005_internals(self):
         """HistoriaDatabase: Test name change handling  """
         testName = "Historia_Tests"
         db = core_data_objects.HistoriaDatabase(testName)
@@ -146,7 +147,7 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(db.name, "valid_database_name", "Name not assigned correctly after init")
 
     
-    def test_10_connections(self):
+    def test_010_connections(self):
         """HistoriaDatabase: Connect"""
         
         db = core_data_objects.HistoriaDatabase(None)
@@ -159,7 +160,7 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(db.connected, db.connection.is_connected(), "Someone is lying about the connection status.")
         self.assertIsNotNone(db.connection.get_server_info(), "Got none when asking for server version.")
     
-    def test_15_connections(self):
+    def test_015_connections(self):
         """HistoriaDatabase: Connect and then Disconnect"""
         
         db = core_data_objects.HistoriaDatabase(None)
@@ -175,7 +176,7 @@ class TestDatabase(unittest.TestCase):
         self.assertFalse(db.connection.is_connected(), "Connection object is not reporting being connected (which means you have two problems most likely)")
         self.assertEqual(db.connected, db.connection.is_connected(), "Someone is lying about the connection status.")
     
-    def test_20_cursors(self):
+    def test_020_cursors(self):
         """HistoriaDatabase: Get Cursor"""
         
         db = core_data_objects.HistoriaDatabase(None)
@@ -187,7 +188,7 @@ class TestDatabase(unittest.TestCase):
         self.assertIsNotNone(cur, "Cursor came back as none.")
         self.assertIsInstance(cur, mysql.connector.cursor.MySQLCursorDict, "Cursor is the wrong type: %s"%cur)
         
-    def test_30_generateDBSQL(self):
+    def test_030_generateDBSQL(self):
         """HistoriaDatabase: generate SQL for database"""
         
         
@@ -222,7 +223,7 @@ class TestDatabase(unittest.TestCase):
                 self.fail("Database Creation Failed: {0}".format(err))
         
     
-    def test_40_executes(self):
+    def test_040_executes(self):
         """HistoriaDatabase: Test Insert Statement"""
         
         db = self.prep_execute_test_tables()
@@ -245,7 +246,7 @@ class TestDatabase(unittest.TestCase):
         db.disconnect()
         self.assertRaises(exceptions.DataConnectionError, db.execute_insert, statement)
     
-    def test_43_executes(self):
+    def test_043_executes(self):
         """HistoriaDatabase: Test Select Statement"""
         db = self.prep_execute_test_tables()
         if not db:
@@ -268,7 +269,7 @@ class TestDatabase(unittest.TestCase):
         db.disconnect()
         self.assertRaises(exceptions.DataConnectionError, db.execute_select, select)
 
-    def test_47_executes(self):
+    def test_047_executes(self):
         """HistoriaDatabase: Test Update Statement"""
         db = self.prep_execute_test_tables()
         if not db:
@@ -356,7 +357,7 @@ class TestRecord(unittest.TestCase):
                 #Say something if we fail in the hopes some fool reads the output...
                 print("Unable to drop test database: {0} due to {1}".format(self.testdb_name, err))
     
-    def test_00_class_vars(self):
+    def test_000_class_vars(self):
         """HistoriaRecord: class defaults"""
         self.assertEqual(core_data_objects.HistoriaRecord.type_label, "Historia Generic Record", "Class has wrong label")
         self.assertEqual(core_data_objects.HistoriaRecord.machine_type, "historia_generic", "Class has wrong machine type")
@@ -366,7 +367,7 @@ class TestRecord(unittest.TestCase):
         self.assertIn('value', core_data_objects.HistoriaRecord._table_fields, "There should be a value field on a generic record")
         
     
-    def test_01_construct(self):
+    def test_001_construct(self):
         """HistoriaRecord: __init__"""
         
         hr = core_data_objects.HistoriaRecord(self.db)
@@ -380,7 +381,7 @@ class TestRecord(unittest.TestCase):
         self.assertIsInstance(hr.database, core_data_objects.HistoriaDatabase, "Database object isn't the right type (oops)")
         
     
-    def test_05_generateSQL(self):
+    def test_005_generateSQL(self):
         """HistoriaRecord: generateSQL for the record's table"""
         statements = core_data_objects.HistoriaRecord.generate_SQL()
         
@@ -399,7 +400,7 @@ class TestRecord(unittest.TestCase):
             except mysql.connector.Error as err:
                 self.fail("Unable to create testing database: {0} \n while executing: {1}".format(err, state[0]))
         
-    def test_10_internals(self):
+    def test_010_internals(self):
         """HistoriaRecord: __setattr__"""
         
         hr = core_data_objects.HistoriaRecord(self.db)
@@ -410,7 +411,7 @@ class TestRecord(unittest.TestCase):
         hr._anything = "ok"
         self.assertEqual(hr._anything, "ok", "Assignment of _ variables works fine.")
     
-    def test_15_internals(self):
+    def test_015_internals(self):
         """HistoriaRecord: __eq__ and __ne__"""
         
         # Two HistoriaRecords are equal when they have the same ID and same type.
@@ -431,15 +432,8 @@ class TestRecord(unittest.TestCase):
         
         # Since machine_type is a class level thing we can't test the conditionals until we have a subclass.
     
-# These should all get tested with a wider variety of data that can easily be fed quickly...
-# def _generate_field_SQL(field_name, settings ):
-# def _generate_index_SQL(index):
-# def _generate_insert_SQL(self):
-# def _generate_select_SQL(self):
-# def _generate_update_SQL(self):
-# def _generate_delete_SQL(self):
         
-    def test_30_save(self):
+    def test_030_save(self):
         """HistoriaRecord: save()"""
         
         hr = core_data_objects.HistoriaRecord(self.db)
@@ -476,7 +470,7 @@ class TestRecord(unittest.TestCase):
         self.assertEqual(result[0]['id'], hr.id, "ID in the table should match the ID on the record.")
 
 
-    def test_40_load(self):
+    def test_040_load(self):
         """HistoriaRecord: load()"""
         
         hr = core_data_objects.HistoriaRecord(self.db)
@@ -495,7 +489,7 @@ class TestRecord(unittest.TestCase):
         
         
     
-    def test_45_load_and_save(self):
+    def test_045_load_and_save(self):
         """HistoriaRecord: use load() and save() a couple of times in a row to make sure we don't create extra records."""
     
         hr = core_data_objects.HistoriaRecord(self.db)
@@ -512,7 +506,7 @@ class TestRecord(unittest.TestCase):
         self.assertEqual(result[0]['id'], hr2.id, "ID in the table should match the ID on the record.")
     
     
-    def test_50_delete(self):
+    def test_050_delete(self):
         """HistoriaRecord: delete()"""
         
         hr = core_data_objects.HistoriaRecord(self.db)
@@ -527,6 +521,25 @@ class TestRecord(unittest.TestCase):
         
         self.assertEqual(len(result), 0, "There should nothing in the table now.")
         self.assertEqual(-1, hr.id, "The ID should reset to -1")
+        
+    def test_060_to_JSON(self):
+        """HistoriaRecord: to_JSON()"""
+        
+        hr = core_data_objects.HistoriaRecord(self.db)
+        
+        hr.value = "Some Data"
+        
+        json_string = hr.to_JSON()
+        
+        self.assertIsInstance(json_string, str, "JSON string isn't a string")
+        self.assertNotEqual(json_string, "", "JSON String is empty")
+        
+        parsed = json.loads(json_string)
+        
+        self.assertIsInstance(parsed, dict, "Parsed JSON doesn't resolve as a dict: {0}".format(json_string))
+        self.assertIn(core_data_objects.HistoriaRecord.machine_type, parsed, "Machine type missing from parsed result")
+        self.assertEqual(parsed[core_data_objects.HistoriaRecord.machine_type]["id"], hr.id, "ID in parsed dict doens't match original")
+        self.assertEqual(parsed[core_data_objects.HistoriaRecord.machine_type]["value"], hr.value, "Value in parsed dict doens't match original")
         
     #TODO:  Add tests for the various _generate_*_SQL() methods
 

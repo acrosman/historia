@@ -319,12 +319,12 @@ class HistoriaRecord(HistoriaDataObject):
             value = getattr(self, field)
             if value is not None:
                 if self._is_type_datetime(type(self)._table_fields[field]['type']):
-                    json_string = '{0}\n"{1}":{2},'.format(json_string, field, json.dumps(value.strftime('%Y-%M-%d %H:%M:%S')))
+                    json_string = '{0}\n"{1}":{2},'.format(json_string, field, json.dumps(value.strftime('%Y-%M-%d %H:%M:%S'), sort_keys=True, indent=4))
                 else:
-                    json_string = '{0}\n"{1}":{2},'.format(json_string, field, json.dumps(value))
-        json_string = '{{0}}'.format(json_string[:-1])
+                    json_string = '{0}\n"{1}":{2},'.format(json_string, field, json.dumps(value, sort_keys=True, indent=4))
+        final = "{" + '"{0}":'.format(type(self).machine_type) + '{' + '{0}'.format(json_string[:-1]) + "}}"
         
-        return json_string
+        return final
     
     # ============== CRUD methods ==================
     def save(self):
@@ -577,70 +577,51 @@ class HistoriaRecord(HistoriaDataObject):
     @staticmethod
     def _is_type_text(field_type):
         """Helper function to determine if a given field type is a type that can be made a python str."""
+        text_types = ['varchar', 'char', 'text', "longtext", "mediumtext", 'tinytext']
         field_type = field_type.lower()
-        if field_type == 'varchar':
-            return True
-        if field_type == 'char':
-            return True
-        if field_type == 'text':
-            return True
-        if field_type == "longtext":
-            return True
-        if field_type == "mediumtext":
-            return True
-        if field_type == 'tinytext':
+        if field_type in text_types:
             return True
 
         return False 
 
     @staticmethod
+    def _is_type_binary(feild_type):
+        """Helper function to determine if a given field type is a type that resolves to a python binary string/array"""
+        bin_types = ['blob', 'longblob', 'mediumblob']
+        field_type = field_type.lower()
+        if field_type in text_types:
+            return True
+        
+        return False
+
+    @staticmethod
     def _is_type_int(field_type):
         """Helper function to determine if a given field type is a type that can be made a python int."""
+        int_types = ['int', 'smallint', 'mediumint', 'integer', 'bigint', 'tinyint']
         field_type = field_type.lower()
-        if field_type == 'int':
+        if field_type in int_types:
             return True
-        if field_type == 'smallint':
-            return True
-        if field_type == 'mediumint':
-            return True
-        if field_type == 'integer':
-            return True
-        if field_type == 'bigint':
-            return True
-        if field_type == 'tinyint':
-            return True
+            
         return False
         
     @staticmethod
     def _is_type_float(field_type):
         """Helper function to determine if a given field type is a type that can be made a python float."""
+        float_types = ['double', 'float', 'double presicion', 'real decimal', 'numeric']
         field_type = field_type.lower()
-        if field_type == 'double':
+        if field_type in float_types:
             return True
-        if field_type == 'float':
-            return True
-        if field_type == 'double presicion':
-            return True
-        if field_type == 'real decimal':
-            return True
-        if field_type == 'numeric':
-            return True
+
         return False
 
     @staticmethod
     def _is_type_datetime(field_type):
         """Helper function to determine if a given field type is a type that can be made a python datetime."""
+        time_types = ['date', 'timestamp', 'datetime', 'time', 'year']
         field_type = field_type.lower()
-        if field_type == 'date':
+        if field_type in time_types:
             return True
-        if field_type == 'datetime':
-            return True
-        if field_type == 'timestamp':
-            return True
-        if field_type == 'time':
-            return True
-        if field_type == 'year':
-            return True
+            
         return False
     
     

@@ -84,7 +84,6 @@ class TestSystemDatabase(unittest.TestCase):
                 except Exception as err:
                     pass # This throws errors when the users doesn't exist.
                 
-                                    
                     
                 self.db.disconnect()
         except:

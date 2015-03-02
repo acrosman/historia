@@ -185,9 +185,9 @@ class HistoriaCoreController(object):
             return db
         elif db_type == 'user':
             # Check to see if there is a database record on file for that name.
-            db = user_db.HistoriaUserDatabase(database_name)
+            db = user_db.HistoriaUserDatabase(self.database, database_name, self.config['server']['aes_key_file'])
             db.connection_settings = connection_settings
-            db.createDatabase(db)
+            self.database.createDatabase(db)
             return db
         else:
             raise ValueError("Databases much be of type 'system' or 'user'")

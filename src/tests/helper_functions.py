@@ -31,8 +31,8 @@ import json
 def load_configuration(file_location):
     """Load the configuration files for Historia test suite. 
     Similar to the method of the same name on controller objects"""
-    default_file =  os.path.join(file_location,"test_default.json")
-    override_file =  os.path.join(file_location,"test_historia.json")
+    default_file =  os.path.join(file_location,"default.json")
+    override_file =  os.path.join(file_location,"historia.json")
     override_status = {}
     
     with open(default_file, 'rt') as f:

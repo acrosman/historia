@@ -70,7 +70,7 @@ class TestHistoriaCoreController(unittest.TestCase):
     def test_00_construct(self):
         """HistoriaCoreController: Test __new__() and __init__()"""
         
-        obj = controllers.HistoriaCoreController()
+        obj = controllers.HistoriaCoreController(config_location = 'tests/test_config')
         
         self.assertIsInstance(obj.logger, logging.Logger, "Default logger isn't a logger")
         self.assertIsInstance(obj.database, system_db.HistoriaSystemDatabase, "Database didn't initalize to None when none provided")
@@ -82,7 +82,7 @@ class TestHistoriaCoreController(unittest.TestCase):
         """HistoriaCoreController: create_database(self, database_name, connection_settings, db_type = "user")"""
         # def create_database(self, database_name, connection_settings, db_type = "user"):
         
-        obj = controllers.HistoriaCoreController()
+        obj = controllers.HistoriaCoreController(config_location = 'tests/test_config')
         
         db = obj.create_database(self.testDBName, self.default_settings, db_type="system")
         
@@ -116,7 +116,7 @@ class TestHistoriaCoreController(unittest.TestCase):
         """HistoriaCoreController: load_database(self, database_name)"""
         # def load_database(self, database_name):
 
-        obj = controllers.HistoriaCoreController()
+        obj = controllers.HistoriaCoreController(config_location = 'tests/test_config')
         db = obj.create_database(self.testDBName, self.default_settings, db_type="system")
         
         db2 = obj.load_database(self.testDBName)
@@ -128,7 +128,7 @@ class TestHistoriaCoreController(unittest.TestCase):
     def test_30_authenticate_user(self):
         """HistoriaCoreController: authenticate_user()"""
         # def authenticate_user(self, user_name, password):
-        obj = controllers.HistoriaCoreController()
+        obj = controllers.HistoriaCoreController(config_location = 'tests/test_config')
         db = obj.create_database(self.testDBName, self.default_settings, db_type="system")
         
         obj.database = db

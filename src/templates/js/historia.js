@@ -1,6 +1,6 @@
 (function () {
   
-  var app = angular.module('historia', []);
+  var app = angular.module('historia', ['ngCookies']);
   
   app.controller('historiaController', function() {
     this.tab = 1;
@@ -15,7 +15,7 @@
     
   });
   
-  app.controller('SubmissionController', ['$http',function($http){
+  app.controller('SubmissionController', ['$http', '$cookies',function($http, $cookies){
     
     this.parameters = [];
     this.targetUrl = "/historia";
@@ -23,6 +23,7 @@
     this.lastResponse = {};
     this.lastHeaders = "N/A";
     this.lastURL = "N/A";
+    this.cookies = [];
     
     var submission = this;
     
@@ -58,6 +59,14 @@
       submission.lastHeaders = headers();
       submission.lastHeaders.status = status;
       submission.lastHeaders.url = config.url;
+      submission.cookies = [];
+      var allCookies = $cookies.getAll();
+      for (var key in allCookies){
+        if (allCookies.hasOwnProperty(key)){
+          c = {"name": key, "value": allCookies[key]};
+          submission.cookies.push(c);
+        }
+      }
     }
   
   }]);

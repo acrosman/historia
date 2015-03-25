@@ -56,5 +56,11 @@
     <div id="response_body">
       <pre>{{submission.lastResponse}}</pre>
     </div>
+    <h3>Cookies</h3>
+      <div id="current_cookies">
+      <ul ng-repeat="cookie in submission.cookies">
+        <li>{{cookie.name}}: {{cookie.value}}</li>
+      </ul>
+      </div>
   </div><!-- end rightsidebar -->
 </div><!-- end TestFormWrapper -->

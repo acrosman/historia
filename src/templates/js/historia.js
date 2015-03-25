@@ -72,6 +72,8 @@
     };
     
   });
+  
+  
   app.controller('UserLoginController', ['$http',function($http){
     
     this.targetUrl = "/historia/system/user_login";
@@ -83,29 +85,29 @@
     
     var userCtrl = this;
   
-  this.login = function() {
-    // send the current values and see what's up.
+    this.login = function() {
+      // send the current values and see what's up.
 
-    var data = {
-      "user": this.name,
-      "password": this.password
-    };
+      var data = {
+        "user": this.name,
+        "password": this.password
+      };
     
-    $http.post(this.targetUrl, data).success(this.display_response).error(this.display_response);
-  }
+      $http.post(this.targetUrl, data).success(this.display_response).error(this.display_response);
+    }
   
-  this.reset_params = function() {
-    this.parameters = [];
-  }
+    this.reset_params = function() {
+      this.parameters = [];
+    }
   
-  this.display_response = function(data, status, headers, config) {
-    userCtrl.lastResponse = data;
-    userCtrl.lastHeaders = headers();
-    userCtrl.lastHeaders.status = status;
-    userCtrl.lastHeaders.url = config.url;
-  }
+    this.display_response = function(data, status, headers, config) {
+      userCtrl.lastResponse = data;
+      userCtrl.lastHeaders = headers();
+      userCtrl.lastHeaders.status = status;
+      userCtrl.lastHeaders.url = config.url;
+    }
 
-}]);
+  }]);
   
   app.directive("historiaContent", function() {
     return {
@@ -113,7 +115,7 @@
       templateUrl: "/historia/files/html/main_content.html",
     };
   });
-  
+
   app.directive('welcomePage', function() {
     return {
       restrict: 'E',
@@ -127,6 +129,7 @@
       templateUrl: '/historia/files/html/test_form.html'
     }
   });
+  
   app.directive('userLoginPage', function() {
     return {
       restrict: 'E',

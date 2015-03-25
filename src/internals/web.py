@@ -144,12 +144,28 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
         
     def send_record(self, session, record):
         self._send_headers(200, 'json', session)
+        
+        if session.userid > 0:
+            user_string = session._user.to_JSON()
+        else:
+            user_string = "false"
+        
         try:
             data = record.to_JSON()
         except AttributeError as err:
             data = json.dumps(record)
         
-        self.wfile.write(data.encode('utf-8'))
+        response = """{{"historia": {{
+            "command": {command},
+            "user": {user},
+            "response": {{
+                "success":{status},
+                "body":{data}
+            }}
+        }}}}""".format(command=json.dumps(self._current_command), user=user_string, status=json.dumps(data!=False), data=data)
+        
+        
+        self.wfile.write(response.encode('utf-8'))
         
     def send_file(self, session, file_path):
         """Send a file. Path must be within file_base_path. If file_base_path is empty a 403 will always be raised."""
@@ -184,9 +200,10 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
     def _send_headers(self, code, contentType, session):
         """Setup and send the headers for a valid 200 text response"""
         self.send_response(code)
-        cookie = http.cookies.SimpleCookie()
-        cookie['session'] = session.sessionid
-        self.send_header('Set-Cookie', cookie.output(header=''))
+        self.send_header('Set-Cookie', "session=" + session.sessionid)
+        if session.userid > 0:
+            self.send_header('Set-Cookie', "userid={uid}".format(uid=session.userid))
+            self.send_header('Set-Cookie', "username={uname}".format(uname=session._user.name))
         self.send_header("content-type", contentType)
         self.end_headers()
         
@@ -234,6 +251,7 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
             self.send_file(session, path_request[1]) # File security handled by the send_file function
         # For all other values we send the request to the controller for handling.
         else:
+            self._current_command = ":".join(path_request)
             query_parameters = urllib.parse.parse_qs(full_request[1]) if len(full_request) == 2 else {}
             self.controller.process_request(self, session, path_request[0], path_request[1], query_parameters)
             
@@ -260,6 +278,7 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
             self.log_error("Unhandled error processing posted data sent to {0}: {1}".format(self.path, str(err)))
             self.send_error(500, "Error processing posted values.")
             return
+        self._current_command = ":".join(path_request)
         self.controller.process_request(self, session, path_request[0], path_request[1], post_parameters)
     
     

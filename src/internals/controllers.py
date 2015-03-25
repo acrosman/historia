@@ -150,10 +150,16 @@ class HistoriaCoreController(object):
         if 'user' not in parameters or 'password' not in parameters:
             return False
         
+        # If the current user is logged in, do not allow the user to re-login
+        if session.userid > 0:
+            return False
+            
+        
         user =  self.authenticate_user(parameters['user'], parameters['password'])
         
         if user:
             session.userid = user.id
+            session._user = user
             session.save()
         
         return user
@@ -260,6 +266,18 @@ class HistoriaCoreController(object):
             sess.save() # reset the last_seen value in the database
 
             self.logger.info("Loaded session with ID: {0}".format(session_id))
+            
+            if sess.userid > 0 :
+                try:
+                    active_user = user.HistoriaUser(self.database)
+                    active_user.load(sess.userid)
+                    sess._user = active_user
+                except database.exceptions.DataLoadError as err:
+                    # If there is an error loading the user for this session then the
+                    # session is corrupt and should be destoryed and a new one created.
+                    self.logger.notice('Invalid user associated with session. Destorying session: {0}'.format(session_id))
+                    self.end_session(session_id)
+                    sess = session.HistoriaSession(self.database)
         except database.exceptions.DataLoadError as err:
             self.logger.error('Unable to load session: {0}'.format(session_id))
             raise InvalidSessionError("Invalid Session ID: {0}".format(session_id))

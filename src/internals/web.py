@@ -157,12 +157,12 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
         
         response = """{{"historia": {{
             "command": {command},
-            "user": {user},
+            {user},
             "response": {{
                 "success":{status},
                 "body":{data}
             }}
-        }}}}""".format(command=json.dumps(self._current_command), user=user_string, status=json.dumps(data!=False), data=data)
+        }}}}""".format(command=json.dumps(self._current_command), user=user_string[1:-1], status=json.dumps(data!=False), data=data)
         
         
         self.wfile.write(response.encode('utf-8'))

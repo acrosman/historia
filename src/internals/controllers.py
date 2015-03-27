@@ -50,12 +50,12 @@ class HistoriaCoreController(object):
         self.routers = {
             'system': {
                 'user_login'    : self.process_login,
-                'end_session'   : self.end_session,
+                'user_logout'   : self.end_session,
                 'status'        : self.system_status
             },
             user.HistoriaUser.machine_type: {
                 'create': user.HistoriaUser,
-                'update': 'save',
+                'save'  : 'save',
                 'delete': 'delete',
                 'load'  : 'load'
             }
@@ -164,8 +164,15 @@ class HistoriaCoreController(object):
         
         return user
         
-    def system_status(self):
-        pass
+    def system_status(self, session, parameters):
+        """Parameters are ignored."""
+        return {
+        "status"        : "Running",
+        "your_session"  : session.id,
+        "users"         : len(self.active_users),
+        "open_databases": len(self.active_user_databases)
+        
+        }
     
     def request_patterns(self, reset=True):
         """Return a list with all valid URL patterns for the web interface."""
@@ -287,19 +294,19 @@ class HistoriaCoreController(object):
         else:
             return sess
 
-    def end_session(self, session_id):
-        """End a given user's session, and close their database connection to free resources."""
-        sess = session.HistoriaSession(self.database)
+    def end_session(self, session, parameters):
+        """End a given user's session, and close their database connection to free resources.
+        parameters is ignored and only included for consistancy with other functions."""
         try:
-            sess.load(session_id)
-            if sess.ip != ip:
-                sess.ip = ip
-            sess.delete()
-            self.logger.info("Ended session with ID: {0}".format(session_id))
+            sid = session.id
+            session.delete()
+            self.logger.info("Ended session with ID: {0}".format(sid))
+            return True
         except database.exceptions.DataLoadError as err:
-            pass
+            self.logger.info("Unable to end session with ID: {0}. Session not found.".format(sid))
+            return False
         except database.exceptions.DataConnectionError as err:
-            self.logger.error('Unable to connect to database to load session: {0}'.format(session_id))
+            self.logger.error('Unable to connect to database to load session: {0}'.format(sid))
             raise err
     
     @staticmethod

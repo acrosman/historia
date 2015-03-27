@@ -200,10 +200,10 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
     def _send_headers(self, code, contentType, session):
         """Setup and send the headers for a valid 200 text response"""
         self.send_response(code)
-        self.send_header('Set-Cookie', "session=" + session.sessionid)
+        self.send_header('Set-Cookie', "session={sid}; path=/".format( sid=session.sessionid ))
         if session.userid > 0:
-            self.send_header('Set-Cookie', "userid={uid}".format(uid=session.userid))
-            self.send_header('Set-Cookie', "username={uname}".format(uname=session._user.name))
+            self.send_header('Set-Cookie', "userid={uid}; path=/".format(uid=session.userid))
+            self.send_header('Set-Cookie', "username={uname}; path=/".format(uname=session._user.name))
         self.send_header("content-type", contentType)
         self.end_headers()
         

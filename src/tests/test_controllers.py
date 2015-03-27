@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # encoding: utf-8
 """
-test_core_data.py
+test_controllers.py
 
 Created by Aaron Crosman on 2015-01-24.
 

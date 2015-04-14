@@ -48,18 +48,73 @@ class HistoriaCoreController(object):
         self.active_user_databases = {}
         
         self.routers = {
-            'system': {
-                'user_login'    : self.process_login,
-                'user_logout'   : self.end_session,
-                'status'        : self.system_status
+            'system' : {
+                user.HistoriaUser.machine_type: {
+                    'login':{
+                        'parameters': ['name', 'password'],
+                        'function'  : self.process_login
+                        'type'      : 'POST'
+                    },
+                    'logout' :{
+                        'parameters': [],
+                        'function'  : self.end_session,
+                        'type'      : 'GET'
+                        
+                    },
+                    'create' : {
+                        'parameters': ['name', 'password', 'email'],
+                        'function'  : user.HistoriaUser, # this is probably wrong
+                        'type'      : 'POST',
+                        'permissions': ['admin']
+                    },
+                    'edit' : {
+                        'parameters': ['name', 'password', 'email'],
+                        'function'  : user.HistoriaUser, # this IS wrong
+                        'type'      : 'POST',
+                        'permissions': ['admin', 'owner']
+                    },
+                    'delete': {
+                        'parameters': ['id'],
+                        'function'  : user.HistoriaUser,
+                        'type'      : 'POST',
+                        'permissions': ['admin']
+                    },
+                    'info' : {
+                        'parameters': ['id'],
+                        'function'  : user.HistoriaUser,
+                        'type'      : 'GET',
+                        'permissions': ['admin', 'owner']
+                    }
+                },
+                'status': {
+                    'get': {
+                        'parameters': [],
+                        'function'  : self.system_status,
+                        'type': 'GET'
+                        'permissions': ['admin']
+                    }
+                }
             },
-            user.HistoriaUser.machine_type: {
-                'create': user.HistoriaUser,
-                'save'  : 'save',
-                'delete': 'delete',
-                'load'  : 'load'
+            'data': {
+                'note': {
+                    'create': {
+                        
+                    },
+                    'load': {
+                        
+                    }
+                },
+                'source': {
+                    'create': {
+                        
+                    },
+                    'load': {
+                        
+                    }
+                }
             }
         }
+        
         self.patterns = []
         self.request_patterns(reset=True)
         
@@ -177,12 +232,19 @@ class HistoriaCoreController(object):
     def request_patterns(self, reset=True):
         """Return a list with all valid URL patterns for the web interface."""
         
-        if reset:
+        if reset or self.patterns == []:
             self.patterns = []
-        
+            
             for route in self.routers:
-                for command in self.routers[route]:
-                    self.patterns.append(route + "/" + command)
+                for context in self.routers[route]:
+                    if context == 'system':
+                        for obj in self.routers['system']:
+                            for command in self.routers['system'][obj]
+                                self.patterns.append("/".join([route, context, obj, command]) )
+                    else:
+                        for obj in self.routers[context]:
+                            for command in self.routers[context][obj]
+                                self.patterns.append("/".join([route, context, "@id", obj, command]))
         
         return self.patterns
         

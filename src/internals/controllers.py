@@ -55,7 +55,7 @@ class HistoriaCoreController(object):
                 user.HistoriaUser.machine_type: {
                     'login':{
                         'parameters': ['name', 'password'],
-                        'function'  : self.process_login
+                        'function'  : self.process_login,
                         'type'      : 'POST'
                     },
                     'logout' :{
@@ -93,11 +93,11 @@ class HistoriaCoreController(object):
                     'get': {
                         'parameters': [],
                         'function'  : self.system_status,
-                        'type': 'GET'
+                        'type': 'GET',
                         'permissions': ['admin']
                     }
                 }
-            }
+            },
             'database': {
                 '@dbid' : {
                     'fetch': {
@@ -111,7 +111,7 @@ class HistoriaCoreController(object):
                         '@oid': {
                             'permissions': ['admin', 'owner'],
                             'type' : 'POST',
-                            'parameters' : 'ALL'
+                            'parameters' : 'UNLIMITED'
                         }
                     }
                 }
@@ -240,12 +240,12 @@ class HistoriaCoreController(object):
             for route in self.routers:
                 if route == 'system':
                     for obj in self.routers['system']:
-                        for command in self.routers['system'][obj]
+                        for command in self.routers['system'][obj]:
                             self.patterns.append("/".join([route, obj, command]) )
                 else :
                     for context in self.routers[route]:
                         for obj in self.routers[route][context]:
-                            for command in self.routers[route][context][obj]
+                            for command in self.routers[route][context][obj]:
                                 self.patterns.append("/".join([route, context, obj, command]) )
         
         return self.patterns

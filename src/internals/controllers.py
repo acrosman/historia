@@ -96,18 +96,18 @@ class HistoriaCoreController(object):
                         'type': 'GET'
                         'permissions': ['admin']
                     }
-                },
-                'database': {
-                    '@dbid' : {
-                        'fetch': {
-                            '@oid' : {
-                                'type' : 'GET',
-                                'permissions' : ['admin', 'owner'],
-                                'parameters' : []
-                            }
-                        },
-                        'update': {
-                            'parameters': [],
+                }
+            }
+            'database': {
+                '@dbid' : {
+                    'fetch': {
+                        '@oid' : {
+                            'type' : 'GET',
+                            'permissions' : ['admin', 'owner'],
+                        }
+                    },
+                    'update': {
+                        '@oid': {
                             'permissions': ['admin', 'owner'],
                             'type' : 'POST'
                         }
@@ -236,15 +236,15 @@ class HistoriaCoreController(object):
             self.patterns = []
             
             for route in self.routers:
-                for context in self.routers[route]:
-                    if context == 'system':
-                        for obj in self.routers['system']:
-                            for command in self.routers['system'][obj]
+                if route == 'system':
+                    for obj in self.routers['system']:
+                        for command in self.routers['system'][obj]
+                            self.patterns.append("/".join([route, obj, command]) )
+                else :
+                    for context in self.routers[route]:
+                        for obj in self.routers[route][context]:
+                            for command in self.routers[route][context][obj]
                                 self.patterns.append("/".join([route, context, obj, command]) )
-                    else:
-                        for obj in self.routers[context]:
-                            for command in self.routers[context][obj]
-                                self.patterns.append("/".join([route, context, "@id", obj, command]))
         
         return self.patterns
         

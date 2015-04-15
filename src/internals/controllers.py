@@ -52,7 +52,7 @@ class HistoriaCoreController(object):
         # TODO: Move to a config file.
         self.routers = {
             'system' : {
-                user.HistoriaUser.machine_type: {
+                'user': {
                     'login':{
                         'parameters': ['name', 'password'],
                         'function'  : self.process_login,

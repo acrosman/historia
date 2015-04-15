@@ -85,7 +85,7 @@
   
   app.controller('UserLoginController', ['$http',function($http){
     
-    this.targetUrl = "/historia/system/user_login";
+    this.targetUrl = "/historia/system/user/login";
     this.lastResponse = {};
     this.lastHeaders = "N/A";
     this.lastURL = "N/A";

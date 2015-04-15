@@ -46,7 +46,10 @@ class HistoriaCoreController(object):
         self.interface = None
         self.active_users = {}
         self.active_user_databases = {}
+        self.patterns = []
         
+        
+        # TODO: Move to a config file.
         self.routers = {
             'system' : {
                 user.HistoriaUser.machine_type: {
@@ -93,29 +96,26 @@ class HistoriaCoreController(object):
                         'type': 'GET'
                         'permissions': ['admin']
                     }
-                }
-            },
-            'data': {
-                'note': {
-                    'create': {
-                        
-                    },
-                    'load': {
-                        
-                    }
                 },
-                'source': {
-                    'create': {
-                        
-                    },
-                    'load': {
-                        
+                'database': {
+                    '@dbid' : {
+                        'fetch': {
+                            '@oid' : {
+                                'type' : 'GET',
+                                'permissions' : ['admin', 'owner'],
+                                'parameters' : []
+                            }
+                        },
+                        'update': {
+                            'parameters': [],
+                            'permissions': ['admin', 'owner'],
+                            'type' : 'POST'
+                        }
                     }
                 }
             }
         }
         
-        self.patterns = []
         self.request_patterns(reset=True)
         
         self.load_configuration(config_location)

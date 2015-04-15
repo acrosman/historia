@@ -104,12 +104,14 @@ class HistoriaCoreController(object):
                         '@oid' : {
                             'type' : 'GET',
                             'permissions' : ['admin', 'owner'],
+                            'parameters' : []
                         }
                     },
                     'update': {
                         '@oid': {
                             'permissions': ['admin', 'owner'],
-                            'type' : 'POST'
+                            'type' : 'POST',
+                            'parameters' : 'ALL'
                         }
                     }
                 }

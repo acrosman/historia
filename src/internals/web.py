@@ -119,23 +119,23 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
         try:
             self.logger.error("HTTP Interface(%s): %s" %
                               (self.address_string(),
-                               format%args) )
+                               format % args))
         except AttributeError as err:
             self.logger = logging.getLogger('historia.web')
             self.logger.error("HTTP Interface(%s): %s" %
                               (self.address_string(),
-                               format%args))
+                               format % args))
 
     def log_message(self, format, *args):
         try:
             self.logger.error("HTTP Interface(%s): %s" %
                               (self.address_string(),
-                               format%args))
+                               format % args))
         except AttributeError as err:
             self.logger = logging.getLogger('historia.web')
             self.logger.info("HTTP Interface(%s): %s" %
                              (self.address_string(),
-                              format%args))
+                              format % args))
 
     @classmethod
     def set_controller(cls, controller):
@@ -263,7 +263,9 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
             # For all other values we send the request to the controller for
             # handling.
             self._current_command = ":".join(path_request)
-            query_parameters = urllib.parse.parse_qs(full_request[1]) if len(full_request) == 2 else {}
+            query_parameters = urllib.parse.parse_qs(full_request[1])\
+                if len(full_request) == 2 else {}
+
             self.controller.process_request(self, session, path_request[0],
                                             path_request[1], query_parameters)
 
@@ -339,8 +341,8 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
         Historia's web server. If the URL is valid return a dict with the
         parsed URL.
 
-        Valid URLS are defined by the controller and split verions are stored
-        in HistoriaHTTPHandler.patterns.
+        Valid URLS are defined by the controller and imported into
+        HistoriaHTTPHandler.patterns during __init__().
         """
 
         # if there is a trailing slash, remove it
@@ -358,6 +360,7 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
         else:
             segments = segments[1:]
 
+        # If Historia's name space is enabled, check for it.
         if HistoriaHTTPHandler.url_namespace is not None and \
                 HistoriaHTTPHandler.url_namespace != '':
             if len(segments) == 0:
@@ -368,14 +371,14 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
                 segments = segments[1:]
 
         # Check for special cases
-        if len(segments) == 0:
+        if len(segments) == 0:  # site root means we want the home page
             return ('home', None)
         elif segments[0] in HistoriaHTTPHandler.special_cases:
             return (segments[0], '/'.join(segments[1:]))
 
         # Compare remaining segments against the valid patterns
         request = "/".join(segments)
-        if request not in HistoriaHTTPHandler.patterns:
+        if HistoriaHTTPHandler.patterns.match(request) is None:
             raise HTTPException("Location not found: {0}".format(path), 404)
         else:
-            return (segments[0], segments[1])
+            return (segments[0], '/'.join(segments[1:]))

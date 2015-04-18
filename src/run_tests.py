@@ -49,14 +49,14 @@ args = parser.parse_args()
 if args.warnings:
     warnings.simplefilter('default')
 
-test_groups = { 'all':          None,
-                'core_data':    test_core_data,
-                'systemdb':     test_system_db,
-                'userdb':       test_user_db,
-                'setting_obj':  test_settings_obj,
-                'user':         test_user,
-                'controller':   test_controllers,
-                'session':      test_session
+test_groups = {'all':          None,
+               'core_data':    test_core_data,
+               'systemdb':     test_system_db,
+               'userdb':       test_user_db,
+               'setting_obj':  test_settings_obj,
+               'user':         test_user,
+               'controller':   test_controllers,
+               'session':      test_session
               }
 
 group_selected = None

@@ -193,7 +193,17 @@ class HistoriaCoreController(object):
             return
 
         try:
-            result = self.routers[object][request](session, parameters)
+            r = request.split('/')
+            if object == 'system':
+                result = self.routers[object][r[0]][r[1]]['function'](session,
+                                                                    parameters)
+            elif object == 'database':
+                # we'll need to extract the IDs and use them.
+                db_id = r[0]
+                command = r[1]
+                obj_id = r[2]
+                raise NotImplementedError("Database access doesn't work yet.")
+
             if result is None:
                 request_handler.send_error(403, "Opperation failed")
             elif result is True or result is False:

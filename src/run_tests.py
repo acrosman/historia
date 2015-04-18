@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # encoding: utf-8
 """
-run_tests.py 
+run_tests.py
 
-Run a selected set of tests, either by providing a parameter or the script will ask.
+Run a selected set of tests, either by providing a parameter or the script will
+ask.
 
 Created by Aaron Crosman on 2015-01-28.
 
@@ -47,14 +48,14 @@ args = parser.parse_args()
 
 if args.warnings:
     warnings.simplefilter('default')
-    
-test_groups = { 'all':          None, 
-                'core_data':    test_core_data, 
-                'systemdb':     test_system_db, 
-                'userdb':       test_user_db, 
-                'setting_obj':  test_settings_obj, 
-                'user':         test_user, 
-                'controller':   test_controllers, 
+
+test_groups = { 'all':          None,
+                'core_data':    test_core_data,
+                'systemdb':     test_system_db,
+                'userdb':       test_user_db,
+                'setting_obj':  test_settings_obj,
+                'user':         test_user,
+                'controller':   test_controllers,
                 'session':      test_session
               }
 
@@ -64,7 +65,7 @@ if args.test_group is None:
     group_options = "Select a set of tests to run:\n"
     for k in test_groups.keys():
         group_options += "{0}\n".format(k)
-    
+
     group_options += "q to quit\n--> "
     tests = ""
     while tests == "":
@@ -74,7 +75,7 @@ if args.test_group is None:
                 exit()
             tests = ""
             print("Invalid selection")
-    
+
     group_selected = tests
 elif args.test_group in test_groups:
     group_selected = args.test_group
@@ -121,7 +122,7 @@ if verbosity == 2:
 else:
     print_err(short_start_header)
     test_header = short_test_header
-    
+
 
 for suite in test_suites:
     print_err(test_header.format(suite))
@@ -150,4 +151,3 @@ print(errors, "errors")
 print(failures, "failures")
 print(problems, "total problems")
 print("{:.2%} tests passed".format(percentage))
-

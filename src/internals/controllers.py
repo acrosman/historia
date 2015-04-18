@@ -32,6 +32,7 @@ import datetime
 import logging
 import logging.config
 import json
+import re
 
 from .exceptions import *
 
@@ -49,7 +50,7 @@ class HistoriaCoreController(object):
         self.interface = None
         self.active_users = {}
         self.active_user_databases = {}
-        self.patterns = []
+        self.url_tester = None
 
         # TODO: Move to a config file.
         self.routers = {
@@ -92,7 +93,7 @@ class HistoriaCoreController(object):
                     }
                 },
                 'status': {
-                    'get': {
+                    'info': {
                         'parameters':  [],
                         'function':    self.system_status,
                         'type':        'GET',
@@ -231,24 +232,37 @@ class HistoriaCoreController(object):
         }
 
     def request_patterns(self, reset=True):
-        """Return a list with all valid URL patterns for the web interface."""
+        """Return a regular expression that will match all valid URL patterns
+        """
 
-        if reset or self.patterns == []:
-            self.patterns = []
+        if reset or self.url_tester is None:
+            pattern = self._build_pattern(self.routers)
+            self.url_tester = re.compile(pattern)
 
-            for route in self.routers:
-                if route == 'system':
-                    for obj in self.routers['system']:
-                        for command in self.routers['system'][obj]:
-                            self.patterns.append("/".join([route, obj, command]))
-                else:
-                    for context in self.routers[route]:
-                        for obj in self.routers[route][context]:
-                            for command in self.routers[route][context][obj]:
-                                self.patterns.append("/".join([route, context,
-                                                     obj, command]))
+        return self.url_tester
 
-        return self.patterns
+    def _build_pattern(self, base_dict):
+        """Converter a set of nexted dictionaries for routers into a regular
+        expression."""
+        if 'type' in base_dict:
+            # this is the bottom layer so return
+            return None
+
+        patterns = []
+        for key in base_dict:
+            pat = self._build_pattern(base_dict[key])
+            if key[0] == '@':
+                # This means the key is place holder for an ID
+                key = "(\d+)"
+            if pat is None:
+                patterns.append(key)
+            else:
+                patterns.append("{0}/{1}".format(key, pat))
+
+        final = patterns[0]
+        for p in patterns[1:]:
+            final = "{0}|{1}".format(final, p)
+        return "({0})".format(final)
 
     # ====================================
     def create_database(self, database_name, connection_settings,

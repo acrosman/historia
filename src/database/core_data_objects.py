@@ -265,6 +265,10 @@ class HistoriaRecord(HistoriaDataObject):
         Subclasses that wish to filter attributes in ways beyond this function
         should raise any needed exceptions, call this function, and handle any
         exceptions raised here.
+        
+        This is rather non-Pythonic, but it simplifies some issues around data
+        structures and database use. MySQL isn't flexible to just any field so
+        we'll allow the objects in front of it be inflexible as well.
         """
         
         if name[:1] is not "_" and name is not 'database' and name not in type(self)._table_fields:

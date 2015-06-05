@@ -45,7 +45,7 @@ from .web import *
 
 class HistoriaCoreController(object):
     def __init__(self, config_location='../config'):
-        self.config = {}
+        config = {}
         self.database = None
         self.interface = None
         self.active_users = {}
@@ -69,35 +69,30 @@ class HistoriaCoreController(object):
                     },
                     'create': {
                         'parameters':   ['name', 'password', 'email'],
-                        'function':     user.HistoriaUser,  # this is probably wrong
-                        'type':         'POST',
-                        'permissions':  ['admin']
+                        'function':     self.user_create, 
+                        'type':         'POST'
                     },
                     'edit': {
                         'parameters':   ['name', 'password', 'email'],
-                        'function':     user.HistoriaUser,  # this IS wrong
-                        'type':         'POST',
-                        'permissions':  ['admin', 'owner']
+                        'function':     self.user_edit,  
+                        'type':         'POST'
                     },
                     'delete': {
                         'parameters':  ['id'],
-                        'function':    user.HistoriaUser,
-                        'type':        'POST',
-                        'permissions': ['admin']
+                        'function':    self.user_delete,
+                        'type':        'POST'
                     },
                     'info': {
                         'parameters':  ['id'],
-                        'function':    user.HistoriaUser,
-                        'type':        'GET',
-                        'permissions': ['admin', 'owner']
+                        'function':    self.user_info,
+                        'type':        'GET'
                     }
                 },
                 'status': {
                     'info': {
                         'parameters':  [],
                         'function':    self.system_status,
-                        'type':        'GET',
-                        'permissions': ['admin']
+                        'type':        'GET'
                     }
                 }
             },
@@ -211,7 +206,7 @@ class HistoriaCoreController(object):
             else:
                 request_handler.send_record(session, result)
         except Exception as err:
-            self.logger.error("Error handling request: {0}.{1} with {2} for {3}. Error: {4}".format(object, request, parameters, session.id, err))
+            self.logger.error("Error handling request: {0}:{1} with {2} for {3}. Error: {4}".format(object, request, parameters, session.id, err))
             request_handler.send_error(500, "Error processing request")
 
     def process_login(self, session, parameters):
@@ -421,3 +416,41 @@ class HistoriaCoreController(object):
                 base_dict[key] = update_dict[key]
 
         return base_dict
+    
+    
+    def user_create(self, session, parameters):
+        """Used for creating new users."""
+        
+    def user_edit(self, session, parameters):
+        """Used for editing users."""
+        
+    def user_delete(self, session, parameters):
+        """Used for deleting users."""
+        
+    def user_info(self, session, parameters):
+        """Used for getting user info."""
+        
+        # Check for user
+        if not hasattr(session, '_user'):
+            self.logger.error('Current session has no assicated user: {0}'.format(session.id))
+            raise InvalidSessionError("Current session has no assicated user: {0}".format(session.id))
+        
+        # Check for an ID to test
+        if 'id' not in parameters:
+            self.logger.error('No ID provided when requesting user information')
+            raise InvalidParametersError("No ID provided when requesting user information")
+        
+        if parameters['id'] == session._user.id:
+            return session._user.toJSON()
+        elif session._user.admin:
+            try:
+                test_user = user.HistoriaUser(self.database)
+                test_user.load(parameters['id'])
+                return test_user.to_JSON()
+            except Exception as err:
+                return None
+        else:
+            self.logger.notice('User {0} [{1}], attempted to get info about another user ({2}).'.format(session._user.name, session._user.id, parameters['id']))
+            raise InvalidPermissionsError("User {0} cannot get information about user with ID {1}".format(session._user.name, parameters['id']))
+        
+        

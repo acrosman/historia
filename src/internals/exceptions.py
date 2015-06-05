@@ -62,6 +62,18 @@ class ConfigurationLoadError(ControllerException):
 
 class InvalidSessionError(ControllerException):
     """Raised when there is an attempt to create or access an invalid session."""
+    pass
+    
+class InvalidParametersError(ControllerException):
+    """Raised when there is an attempt to process a request with the wrong 
+    parameters."""
+    pass
+
+class InvalidPermissionsError(ControllerException):
+    """Raised when there is an attempt to process a request by a user lacking 
+    the right."""
+    pass
+
 
 ###############################################################################
 ##               Web Interface Exceptions

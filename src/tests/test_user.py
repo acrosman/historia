@@ -274,7 +274,7 @@ class TestUser(unittest.TestCase):
         self.assertEqual(result[0]['admin'], 0, "admin in the table should match the one on the record.")        
         
     def test_40_load(self):
-        """HistoriaSetting: load()"""
+        """HistoriaUser: load()"""
         self.database_setup(withTables=True)
         hu1 = user.HistoriaUser(self.db)
         current_stamp = datetime.datetime.now()
@@ -304,7 +304,7 @@ class TestUser(unittest.TestCase):
         self.assertNotEqual(hu2.modified, hu1.modified, "modified in the table should not match the one on the record since that was setup by MySQL.")
 
     def test_50_delete(self):
-        """HistoriaSetting: delete()"""
+        """HistoriaUser: delete()"""
         self.database_setup(withTables=True)
         hu1 = user.HistoriaUser(self.db)
         current_stamp = datetime.datetime.now()
@@ -326,6 +326,20 @@ class TestUser(unittest.TestCase):
 
         self.assertEqual(len(result), 0, "There should nothing in the table now.")
         self.assertEqual(-1, hu1.id, "The ID should reset to -1")
+        
+    def test_60_to_dict(self):
+        """HistoriaUser: make sure password is not provided by to_dict()"""
+        
+        hu = user.HistoriaUser(self.db)
+        
+        sample_pass = "Super Secret Password"
+        
+        hu.password = sample_pass
+        
+        my_dict = hu.to_dict()
+        
+        self.assertFalse('password' in my_dict, "Password present in user dictionary.")
+        
     
 if __name__ == '__main__':
     unittest.main()

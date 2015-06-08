@@ -161,6 +161,18 @@ class HistoriaUser(HistoriaRecord):
                 setattr(self, field, data[field])
 
         self._dirty = False
+    
+    def to_dict(self):
+        """Return a dictionary representing this user's fields that can be
+        safely used for serialization. Make sure password hash is not included
+        in the response."""
+        
+        user_dict = super().to_dict()
+        
+        del user_dict['fields']['password']
+        
+        return user_dict
+        
 
 if __name__ == '__main__':
     import unittest

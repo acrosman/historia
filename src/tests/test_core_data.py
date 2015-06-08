@@ -522,24 +522,21 @@ class TestRecord(unittest.TestCase):
         self.assertEqual(len(result), 0, "There should nothing in the table now.")
         self.assertEqual(-1, hr.id, "The ID should reset to -1")
         
-    def test_060_to_JSON(self):
-        """HistoriaRecord: to_JSON()"""
+    def test_060_to_dict(self):
+        """HistoriaRecord: to_dict()"""
         
         hr = core_data_objects.HistoriaRecord(self.db)
         
         hr.value = "Some Data"
         
-        json_string = hr.to_JSON()
+        rec_dict = hr.to_dict()
         
-        self.assertIsInstance(json_string, str, "JSON string isn't a string")
-        self.assertNotEqual(json_string, "", "JSON String is empty")
+        self.assertIsInstance(rec_dict, dict, "to_dict() did not return a dictionary")
+        self.assertNotEqual(rec_dict, {}, "to_dict() returned an empty dictionary")
         
-        parsed = json.loads(json_string)
-        
-        self.assertIsInstance(parsed, dict, "Parsed JSON doesn't resolve as a dict: {0}".format(json_string))
-        self.assertIn(core_data_objects.HistoriaRecord.machine_type, parsed, "Machine type missing from parsed result")
-        self.assertEqual(parsed[core_data_objects.HistoriaRecord.machine_type]["id"], hr.id, "ID in parsed dict doens't match original")
-        self.assertEqual(parsed[core_data_objects.HistoriaRecord.machine_type]["value"], hr.value, "Value in parsed dict doens't match original")
+        self.assertEqual(core_data_objects.HistoriaRecord.machine_type, rec_dict['machine_type'], "Machine type missing from result")
+        self.assertEqual(rec_dict['id'], hr.id, "ID in dict doens't match original")
+        self.assertEqual(rec_dict['fields']['value'], hr.value, "Value in dict doens't match original")
         
     #TODO:  Add tests for the various _generate_*_SQL() methods
 

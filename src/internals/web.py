@@ -32,6 +32,7 @@ from cgi import parse_header, parse_multipart
 
 from .exceptions import *
 from .controllers import *
+from .historia_json_encoder import *
 
 
 class HistoriaServer(object):
@@ -150,14 +151,11 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
         self._send_headers(200, 'json', session)
 
         if session.userid > 0:
-            user_string = session._user.to_JSON()
+            user_string = json.dumps(session._user, cls=HistoriaJSONEncoder)[1:-1]
         else:
             user_string = "false"
 
-        try:
-            data = record.to_JSON()
-        except AttributeError as err:
-            data = json.dumps(record)
+        data = json.dumps(record, cls=HistoriaJSONEncoder)
 
         response = """{{"historia": {{
             "command": {command},
@@ -167,8 +165,8 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
                 "body":{data}
             }}
         }}}}""".format(command=json.dumps(self._current_command),
-                       user=user_string[1:-1],
-                       status=json.dumps(data is not False),
+                       user=user_string,
+                       status=json.dumps(data is not False and data is not []),
                        data=data)
 
         self.wfile.write(response.encode('utf-8'))
@@ -243,7 +241,7 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
         self.log_message("Processing GET request %s", self.path)
 
         # Split the query string from the path
-        full_request = self.path.split('?')
+        query_string = self.path.split('?')[1]
         try:
             path_request = HistoriaHTTPHandler.ValidateURL(self.path)
         except HTTPException as err:
@@ -263,9 +261,9 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
             # For all other values we send the request to the controller for
             # handling.
             self._current_command = ":".join(path_request)
-            query_parameters = urllib.parse.parse_qs(full_request[1])\
-                if len(full_request) == 2 else {}
-
+            query_parameters = urllib.parse.parse_qs(self.path.split('?')[1], keep_blank_values=True)\
+                if '?' in self.path else {}
+            
             self.controller.process_request(self, session, path_request[0],
                                             path_request[1], query_parameters)
 
@@ -348,7 +346,11 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
         # if there is a trailing slash, remove it
         if path[-1:] == '/':
             path = path[:-1]
-
+        
+        # If there is a query string, drop it
+        if '?' in path:
+            path = path.split('?')[0]
+        
         # push the URL to lowercase to avoid case issues, and split it into
         # segments:
         segments = path.casefold().split('/')

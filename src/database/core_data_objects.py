@@ -314,21 +314,25 @@ class HistoriaRecord(HistoriaDataObject):
             except AttritbuteError:
                 return True
     
-    def to_JSON(self):
-        """Return a JSON encoded string representing this object."""
+    def to_dict(self):
+        """Return a dictionary representing this object's import fields that
+        can be safely used for serialization."""
         
-        json_string = ''
+        obj_dict = { 'id'          : self.id,
+                     'type_label'  : self.type_label, 
+                     'machine_type': self.machine_type,
+                     'fields'      : {}
+                   }
         
         for field in type(self)._table_fields:
             value = getattr(self, field)
-            if value is not None:
+            if value is not None and field is not 'id':
                 if self._is_type_datetime(type(self)._table_fields[field]['type']):
-                    json_string = '{0}\n"{1}":{2},'.format(json_string, field, json.dumps(value.strftime('%Y-%M-%d %H:%M:%S'), sort_keys=True, indent=4))
+                    obj_dict['fields'][field] = value.strftime('%Y-%M-%d %H:%M:%S')
                 else:
-                    json_string = '{0}\n"{1}":{2},'.format(json_string, field, json.dumps(value, sort_keys=True, indent=4))
-        final = "{" + '"{0}":'.format(type(self).machine_type) + '{' + '{0}'.format(json_string[:-1]) + "}}"
+                    obj_dict['fields'][field] = value
         
-        return final
+        return obj_dict
     
     # ============== CRUD methods ==================
     def save(self):

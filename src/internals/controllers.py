@@ -3,7 +3,7 @@
 """
 contollers.py
 
-This files is part of the internals package to handle controllers and other internal functions..
+This file is part of the internals package to handle controllers and other internal functions..
 
 
 Created by Aaron Crosman on 2015-02-01
@@ -39,6 +39,7 @@ from .exceptions import *
 from database import system_db, user, session, user_db
 from database import core_data_objects
 import database.exceptions
+
 
 from .web import *
 
@@ -179,6 +180,10 @@ class HistoriaCoreController(object):
     def process_request(self, request_handler, session, object, request,
                         parameters):
         """Process requests from a request_handler and send back the results"""
+        
+        self.logger.debug("Processing request handler: {0} for {1}. Object: {2} Request: {3} Parameters: {4}".format(
+                                request_handler, session, object, request, parameters))
+        
         if object not in self.routers:
             request_handler.send_error(404, "Requested Resource not found")
             return
@@ -190,8 +195,13 @@ class HistoriaCoreController(object):
         try:
             r = request.split('/')
             if object == 'system':
-                result = self.routers[object][r[0]][r[1]]['function'](session,
+                # Check to see we can found the router and if the request type matches router
+                if self.routers[object][r[0]][r[1]]['type'] == request_handler.command:
+                    result = self.routers[object][r[0]][r[1]]['function'](session,
                                                                     parameters)
+                else:
+                    self.logger.error("Invalid System Request Type: {0} must be a {1}".format(request, request_hander.command))
+                    request_handler.send_error(403, "Invalid System Request Type: {0} must be a {1}".format(request, request_hander.command))
             elif object == 'database':
                 # we'll need to extract the IDs and use them.
                 db_id = r[0]
@@ -205,9 +215,14 @@ class HistoriaCoreController(object):
                 request_handler.send_record(session, {'Response': result})
             else:
                 request_handler.send_record(session, result)
+        
+        except (InvalidPermissionsError, InvalidSessionError) as err:
+            request_handler.send_error(403, "You do not have the access required to complete this request.")
+        except InvalidParametersError as err:
+            request_handler.send_error(404, "Invalid Parameters for this request.")
         except Exception as err:
             self.logger.error("Error handling request: {0}:{1} with {2} for {3}. Error: {4}".format(object, request, parameters, session.id, err))
-            request_handler.send_error(500, "Error processing request")
+            request_handler.send_error(500, "General Error processing request")
 
     def process_login(self, session, parameters):
         if 'user' not in parameters or 'password' not in parameters:
@@ -440,17 +455,20 @@ class HistoriaCoreController(object):
             self.logger.error('No ID provided when requesting user information')
             raise InvalidParametersError("No ID provided when requesting user information")
         
-        if parameters['id'] == session._user.id:
-            return session._user.toJSON()
-        elif session._user.admin:
-            try:
-                test_user = user.HistoriaUser(self.database)
-                test_user.load(parameters['id'])
-                return test_user.to_JSON()
-            except Exception as err:
-                return None
-        else:
-            self.logger.notice('User {0} [{1}], attempted to get info about another user ({2}).'.format(session._user.name, session._user.id, parameters['id']))
-            raise InvalidPermissionsError("User {0} cannot get information about user with ID {1}".format(session._user.name, parameters['id']))
+        users = []
+        for uid in parameters['id']:
+            if uid == session._user.id:
+                 users.append(session._user)
+            elif session._user.admin:
+                try:
+                    test_user = user.HistoriaUser(self.database)
+                    test_user.load(uid)
+                    users.append(test_user)
+                except Exception as err:
+                    return None
+            else:
+                self.logger.notice('User {0} [{1}], attempted to get info about another user ({2}).'.format(session._user.name, session._user.id, parameters['id']))
+                raise InvalidPermissionsError("User {0} cannot get information about user with ID {1}".format(session._user.name, parameters['id']))
         
+        return users
         

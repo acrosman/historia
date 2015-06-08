@@ -241,7 +241,7 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
         self.log_message("Processing GET request %s", self.path)
 
         # Split the query string from the path
-        query_string = self.path.split('?')[1]
+        query_string = self.path.split('?')[1] if '?' in self.path else ""
         try:
             path_request = HistoriaHTTPHandler.ValidateURL(self.path)
         except HTTPException as err:

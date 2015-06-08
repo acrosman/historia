@@ -194,14 +194,15 @@ class HistoriaCoreController(object):
 
         try:
             r = request.split('/')
+            result = None
             if object == 'system':
                 # Check to see we can found the router and if the request type matches router
                 if self.routers[object][r[0]][r[1]]['type'] == request_handler.command:
                     result = self.routers[object][r[0]][r[1]]['function'](session,
                                                                     parameters)
                 else:
-                    self.logger.error("Invalid System Request Type: {0} must be a {1}".format(request, request_hander.command))
-                    request_handler.send_error(403, "Invalid System Request Type: {0} must be a {1}".format(request, request_hander.command))
+                    self.logger.error("Invalid System Request Type: {0} must be a {1}".format(request, request_handler.command))
+                    request_handler.send_error(403, "Invalid System Request Type: {0} must be a {1}".format(request, request_handler.command))
             elif object == 'database':
                 # we'll need to extract the IDs and use them.
                 db_id = r[0]
@@ -210,7 +211,7 @@ class HistoriaCoreController(object):
                 raise NotImplementedError("Database access doesn't work yet.")
 
             if result is None:
-                request_handler.send_error(403, "Opperation failed")
+                request_handler.send_error(403, "Request failed")
             elif result is True or result is False:
                 request_handler.send_record(session, {'Response': result})
             else:

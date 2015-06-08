@@ -184,6 +184,11 @@ class TestUser(unittest.TestCase):
         with self.assertRaises(ValueError):
             setattr(hu, 'name', "some@thing.com")
         
+        # Check that admin and enabled throw value errors for non-bools
+        with self.assertRaises(ValueError):
+            setattr(hu, 'enabled', 'ABC')
+            setattr(hu, 'admin', 'ABC')
+        
         
     def test_20_password(self):
         """HistoriaUser: Test password comparison"""
@@ -235,6 +240,7 @@ class TestUser(unittest.TestCase):
         self.assertEqual(result[0]['enabled'], hu.enabled, "enabled in the table should match the one on the record.")        
         self.assertEqual(result[0]['admin'], hu.admin, "admin in the table should match the one on the record.")        
         self.assertNotEqual(result[0]['modified'], hu.modified, "modified in the table should not match the one on the record since that was setup by MySQL.")
+        
         
     def test_33_save(self):
         """HistoriaUser: save() with only the minimum required settings"""

@@ -69,12 +69,12 @@ class HistoriaCoreController(object):
 
                     },
                     'create': {
-                        'parameters':   ['name', 'password', 'email'],
+                        'parameters':   ['name', 'password', 'email', 'enabled', 'admin'],
                         'function':     self.user_create, 
                         'type':         'POST'
                     },
                     'edit': {
-                        'parameters':   ['name', 'password', 'email'],
+                        'parameters':   ['name', 'password', 'email', 'enabled', 'admin'],
                         'function':     self.user_edit,  
                         'type':         'POST'
                     },
@@ -436,6 +436,39 @@ class HistoriaCoreController(object):
     
     def user_create(self, session, parameters):
         """Used for creating new users."""
+        
+        # Check for user
+        if not hasattr(session, '_user'):
+            self.logger.error('Current session has no assicated user: {0}'.format(session.id))
+            raise InvalidSessionError("Current session has no assicated user: {0}".format(session.id))
+        
+        # Verify the user is an admin
+        if not session._user.admin:
+            self.logger.notice('User {0} [{1}], attempted to create a new user.'.format(session._user.name, session._user.id))
+            raise InvalidPermissionsError("Must have admin rights to create users.")
+        
+        # Verify required parameters were provided
+        for param in self.routers['system']['user']['create']['parameters']:
+            if param not in parameters:
+                self.logger.info("Attempt to create user without setting {0}".format(param))
+                raise InvalidParametersError("No {0} provided when creating new user".format(param))
+        
+        new_user = user.HistoriaUser(self.database)
+        
+        try:
+            new_user.name = parameters['name']
+            new_user.email = parameters['email']
+            new_user.password = parameters['password']
+            new_user.admin = bool(int(parameters['admin']))
+            new_user.enabled = bool(int(parameters['enabled']))
+            new_user.save()
+            return new_user
+        except ValueError as err:
+            self.logger.info("Error creating new user: {0}".format(err))
+            raise InvalidParametersError("Error creating new user")
+        except database.exceptions.HistoriaDataException as err:
+            self.logger.info("Database error while creating new user: {0}".format(err))
+            raise InvalidParametersError("Error creating new user")
         
     def user_edit(self, session, parameters):
         """Used for editing users."""

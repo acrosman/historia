@@ -74,7 +74,7 @@ class HistoriaCoreController(object):
                         'type':         'POST'
                     },
                     'edit': {
-                        'parameters':   ['name', 'password', 'email', 'enabled', 'admin'],
+                        'parameters':   ['id', 'name', 'password', 'email', 'enabled', 'admin'],
                         'function':     self.user_edit,  
                         'type':         'POST'
                     },
@@ -455,14 +455,46 @@ class HistoriaCoreController(object):
         
         new_user = user.HistoriaUser(self.database)
         
+        return self._mod(new_user, parameters)
+        
+    def user_edit(self, session, parameters):
+        """Used for editing users."""
+        
+        # Check for current user
+        if not hasattr(session, '_user'):
+            self.logger.error('Current session has no assicated user: {0}'.format(session.id))
+            raise InvalidSessionError("Current session has no assicated user: {0}".format(session.id))
+        
+        for param in self.routers['system']['user']['edit']['parameters']:
+            if param not in parameters:
+                self.logger.info("Attempt to create user without setting {0}".format(param))
+                raise InvalidParametersError("No {0} provided when creating new user".format(param))
+                
+        # Verify current user is admin or editing self
+        if not session._user.admin and session._user.id != parameters['id']:
+            self.logger.notice('User {0} [{1}], attempted to edit another user ({2}).'.format(session._user.name, session._user.id, parameters['id']))
+            raise InvalidPermissionsError("User {0} attempted to edit user with ID {1}".format(session._user.name, parameters['id']))
+        
+        edit_user = user.HistoriaUser(self.database)
+        
         try:
-            new_user.name = parameters['name']
-            new_user.email = parameters['email']
-            new_user.password = parameters['password']
-            new_user.admin = bool(int(parameters['admin']))
-            new_user.enabled = bool(int(parameters['enabled']))
-            new_user.save()
-            return new_user
+            edit_user.load(parameters['id'])
+        except database.exceptions.DataLoadError as err:
+            self.logger.error('Unable to load user {0}'.format(parameters['id']))
+            raise InvalidParametersError('Unable to load user {0}'.format(parameters['id']))
+        
+        return self._mod_user(edit_user, parameters)
+        
+    def _mod_user(self, mod_user, parameters):
+        """Helper function for user create and edit."""
+        try:
+            mod_user.name = parameters['name']
+            mod_user.email = parameters['email']
+            mod_user.password = parameters['password']
+            mod_user.admin = bool(int(parameters['admin']))
+            mod_user.enabled = bool(int(parameters['enabled']))
+            mod_user.save()
+            return mod_user
         except ValueError as err:
             self.logger.info("Error creating new user: {0}".format(err))
             raise InvalidParametersError("Error creating new user")
@@ -470,9 +502,7 @@ class HistoriaCoreController(object):
             self.logger.info("Database error while creating new user: {0}".format(err))
             raise InvalidParametersError("Error creating new user")
         
-    def user_edit(self, session, parameters):
-        """Used for editing users."""
-        
+    
     def user_delete(self, session, parameters):
         """Used for deleting users."""
         

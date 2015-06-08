@@ -506,6 +506,36 @@ class HistoriaCoreController(object):
     def user_delete(self, session, parameters):
         """Used for deleting users."""
         
+        # Check for user
+        if not hasattr(session, '_user'):
+            self.logger.error('Current session has no assicated user: {0}'.format(session.id))
+            raise InvalidSessionError("Current session has no assicated user: {0}".format(session.id))
+        
+        # Verify the user is an admin
+        if not session._user.admin:
+            self.logger.notice('User {0} [{1}], attempted to create a new user.'.format(session._user.name, session._user.id))
+            raise InvalidPermissionsError("Must have admin rights to create users.")
+        
+        # Verify required parameters were provided
+        for param in self.routers['system']['user']['delete']['parameters']:
+            if param not in parameters:
+                self.logger.info("Attempt to delete user without required value: {0}".format(param))
+                raise InvalidParametersError("No {0} provided when deleting user".format(param))
+        
+        
+        del_user = user.HistoriaUser(self.database)
+
+        try:
+            del_user.load(parameters['id'])
+        except database.exceptions.DataLoadError as err:
+            self.logger.error('Unable to find user {0} for delete'.format(parameters['id']))
+            raise InvalidParametersError('Unable to find user {0} for delete'.format(parameters['id']))
+        
+        del_user.delete()
+        
+        return del_user.id == -1
+        
+        
     def user_info(self, session, parameters):
         """Used for getting user info."""
         

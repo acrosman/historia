@@ -13,7 +13,7 @@ Requirements
 ============
 **Python 3.4**
 
-Historia's should run on any platform that supports Python 3.4 or later, but it has only been tested on MacOS X. 
+Historia's should run on any platform that supports Python 3.4 or later, but it has only been tested on MacOS X.
 
 The following add-ons are required:
 
@@ -28,6 +28,8 @@ https://pypi.python.org/pypi/pycrypto
 **mysql python connector**
 
 http://dev.mysql.com/downloads/connector/python/
+
+Requires version 2.0 or later.
 
 License
 =======

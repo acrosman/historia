@@ -69,6 +69,7 @@ class TestHistoriaCoreController(unittest.TestCase):
             db.commit()
             cur.execute("DROP DATABASE `{0}`".format(self.user_db_name))
             db.commit()
+            db.disconnect()
         except Exception as err:
             pass
 

@@ -32,7 +32,7 @@ from .exceptions import *
 
 
 class HistoriaUser(HistoriaRecord):
-    
+
     type_label        = "Historia User"
     machine_type      = "historia_user"
     _table_fields      = {'id': {
@@ -59,7 +59,7 @@ class HistoriaUser(HistoriaRecord):
                                 'order': 2
                             },
                             'password': {
-                                'type': 'char',
+                                'type': 'binary',
                                 'length': '60',
                                 'allow_null': False,
                                 'order': 3
@@ -100,50 +100,50 @@ class HistoriaUser(HistoriaRecord):
                         }
     # The table fields here are just present for testing and are not expected to be used
     # Fields are defined as follows (this should get documented someplace better)
-    # _table_fields = {'field_name': {'type': [type_name], 
-    #                                'length': [as_needed_by_type], 
+    # _table_fields = {'field_name': {'type': [type_name],
+    #                                'length': [as_needed_by_type],
     #                                'signed': [TRUE/FALSE]
     #                                'allow_null': [TRUE/FALSE],
     #                                'default': [default value or NULL or AUTO_INCREMENT],
     #                                'update_timestamp': [TRUE/FALSE on timestamp field only],
-    #                                'index' : {'type' : [PRIMARY/UNIQUE/BASIC], 
+    #                                'index' : {'type' : [PRIMARY/UNIQUE/BASIC],
     #                                           'name' : [Optional name],
     #                                           'fields': [List, of, fields]}
     #                }}
-    
-    
+
+
     def __setattr__(self, name, value):
         """
         Use __setattr__ to detect changes to the object so that we can check
         the field list for value attributes and to set the dirty bit to see
-        if a save is required. 
+        if a save is required.
         For a user, this also handle password encryption.
         """
-        
+
         if name == 'password' and value is not None:
             if not isinstance(value, str):
                 raise ValueError("Password must be strings.")
-            value = bcrypt.hashpw(value, bcrypt.gensalt())
-        
+            value = bcrypt.hashpw(value.encode('utf-8'), bcrypt.gensalt())
+
         # Ban @ from the name column to avoid email addresses appearing there.
         try:
             if name == 'name' and "@" in value:
                 raise ValueError("@ not permitted in user name.")
         except TypeError as err:
             pass
-        
+
         # Create a bypass so we can load vaules from the database without trouble.
         if name == '_password' and value is not None:
             name = 'password'
-        
+
         # Since all the general checking is at in HistoriaRecord, do the checking there.
         HistoriaRecord.__setattr__(self, name, value)
-        
-                
+
+
     def checkPassword(self, testPassword):
         """checkPassword: use bcrypt to test of testPassword matches the password on file."""
-        return bcrypt.hashpw(testPassword, self.password) == self.password
-    
+        return bcrypt.hashpw(testPassword.encode('utf-8'), self.password) == self.password
+
     def load(self, recordID):
         """Load a user from the database into this object, don't double encrypt the password."""
 
@@ -151,28 +151,28 @@ class HistoriaUser(HistoriaRecord):
             raise DataLoadError("Cannot load a record into a record object already in new.  Memory is cheap, create a new one.")
 
         data = self.database.execute_select(self._generate_select_SQL(recordID))[0]
-        
+
         for field in data:
             if field == 'id':
                 self._id = data[field]
             elif field == 'password':
-                self._password = data[field]
+                self._password = bytes(data[field])
             else:
                 setattr(self, field, data[field])
 
         self._dirty = False
-    
+
     def to_dict(self):
         """Return a dictionary representing this user's fields that can be
         safely used for serialization. Make sure password hash is not included
         in the response."""
-        
+
         user_dict = super().to_dict()
-        
+
         del user_dict['fields']['password']
-        
+
         return user_dict
-        
+
 
 if __name__ == '__main__':
     import unittest

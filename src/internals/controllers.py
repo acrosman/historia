@@ -112,6 +112,13 @@ class HistoriaCoreController(object):
                             'type': 'POST',
                             'parameters': 'UNLIMITED'
                         }
+                    },
+                    'delete': {
+                        '@oid': {
+                            'permissions': ['admin', 'owner'],
+                            'type': 'POST',
+                            'parameters': []
+                        }
                     }
                 }
             }

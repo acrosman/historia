@@ -186,7 +186,6 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
         extension = os.path.splitext(real_path)[-1].lower()[1:]
         content_type = HistoriaHTTPHandler.file_types[extension]
         try:
-
             mode = "r"
             if not content_type.startswith("text"):
                 f = open(real_path, 'rb')
@@ -211,6 +210,8 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
                              "userid={uid}; path=/".format(uid=session.userid))
             self.send_header('Set-Cookie',
                              "username={uname}; path=/".format(uname=session._user.name))
+            self.send_header('Set-Cookie',
+                             "isadmin={uid}; path=/".format(uid=session._user.admin))
         self.send_header("content-type", contentType)
         self.end_headers()
 
@@ -263,7 +264,7 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
             self._current_command = ":".join(path_request)
             query_parameters = urllib.parse.parse_qs(self.path.split('?')[1], keep_blank_values=True)\
                 if '?' in self.path else {}
-            
+
             self.controller.process_request(self, session, path_request[0],
                                             path_request[1], query_parameters)
 
@@ -346,11 +347,11 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
         # if there is a trailing slash, remove it
         if path[-1:] == '/':
             path = path[:-1]
-        
+
         # If there is a query string, drop it
         if '?' in path:
             path = path.split('?')[0]
-        
+
         # push the URL to lowercase to avoid case issues, and split it into
         # segments:
         segments = path.casefold().split('/')
@@ -374,7 +375,7 @@ class HistoriaHTTPHandler(http.server.BaseHTTPRequestHandler):
 
         # Check for special cases
         if len(segments) == 0:  # site root means we want the home page
-            return ('home', None)
+            return ('home', '')
         elif segments[0] in HistoriaHTTPHandler.special_cases:
             return (segments[0], '/'.join(segments[1:]))
 

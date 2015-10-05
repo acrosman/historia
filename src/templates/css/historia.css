@@ -1,25 +1,25 @@
-/** 
+/**
 Copyright: Aaron Crosman 2015
 
-Default Layout: 992px. 
+Default Layout: 992px.
 Outer margins: 48px.
 **/
 /*	Resets
 	------	*/
 
-html, body, div, span, object, iframe, h1, h2, h3, h4, h5, h6, 
-p, blockquote, pre, a, abbr, address, cite, code, del, dfn, em, 
-img, ins, kbd, q, samp, small, strong, sub, sup, var, b, i, hr, 
-dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, 
-tbody, tfoot, thead, tr, th, td, article, canvas, details, hgroup, 
-menu, footer, header, nav, section, summary, time, mark, note, 
+html, body, div, span, object, iframe, h1, h2, h3, h4, h5, h6,
+p, blockquote, pre, a, abbr, address, cite, code, del, dfn, em,
+img, ins, kbd, q, samp, small, strong, sub, sup, var, b, i, hr,
+dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption,
+tbody, tfoot, thead, tr, th, td, article, canvas, details, hgroup,
+menu, footer, header, nav, section, summary, time, mark, note,
 source, project, creator {
 	margin: 0;
 	padding: 0;
 	border: 0;
 }
 
-article, canvas, figure, footer, header, nav, section, note, source, 
+article, canvas, figure, footer, header, nav, section, note, source,
 project, creator, header, section, footer, nav, article, figure, label {
 	display: block;
 }
@@ -100,7 +100,7 @@ p {
 }
 
 strong,
-h1, h2, h3, 
+h1, h2, h3,
 nav, #navbar a {
 	font-family: "Franklin Gothic Medium", Helvetica, sans-serif;
 	font-weight: normal;
@@ -129,9 +129,9 @@ a:hover { color: #DDD; }
 
 a.button:link,
 a.button:visited,
-a.button:hover { 
+a.button:hover {
 	color:#FFF;
-	opacity: 1; 
+	opacity: 1;
 }
 
 /* General Layout
@@ -166,7 +166,7 @@ header h1 {
 	color: #333;
 }
 
-/* Body 
+/* Body
    ----*/
 
 body {
@@ -192,7 +192,7 @@ header {
 }
 
 nav ul {
-	list-style: none; 
+	list-style: none;
 	margin-bottom: 15px;
 	padding: 0 1em;
 }
@@ -205,9 +205,9 @@ nav ul a, nav ul a:visited {
 	text-decoration: none;
 	color: #FFF;
 }
-/* this changes the background and text color for both mouse and keyboard 
+/* this changes the background and text color for both mouse and keyboard
 navigators */
-nav ul a:hover, nav ul a:active, nav ul a:focus { 
+nav ul a:hover, nav ul a:active, nav ul a:focus {
 	background: #ADB96E;
 	color: #FFF;
 }
@@ -218,8 +218,8 @@ nav ul a:hover, nav ul a:active, nav ul a:focus {
 
 /* Main Section Layout
    ------------------- */
-   
-/* ~~ These are areas within the page that contain various parts controls.  
+
+/* ~~ These are areas within the page that contain various parts controls.
 Most important is MainPanel were the main content goes. This sets the default
 behavior, which is sometimes overriden for specific page layouts. ~~ */
 #leftsidebar {
@@ -262,7 +262,7 @@ ul.links li {
 }
 
 /* Note Page Spacing Overrides */
-#NoteIndex #mainPanel, #NotePanel #mainPanel, 
+#NoteIndex #mainPanel, #NotePanel #mainPanel,
 #SourceIndex #mainPanel, #SourcePanel #mainPanel {
 	width: 795px;
 }
@@ -326,7 +326,7 @@ th {
 	color: #FFF;
 	padding: 10px 48px;
 	margin: 0 auto;
-	
+
 	outline: 1px solid silver; /* debugging */
 	outline: none; /* off */
 }
@@ -377,4 +377,8 @@ margin-left: 0;
 }
 .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
 right: 0px;
+}
+
+#current_cookies {
+	margin-left: 20px;
 }

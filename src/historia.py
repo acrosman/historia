@@ -2,7 +2,7 @@
 # encoding: utf-8
 """
 This is the main historia launching script.  This will change dramatically
-over time, right now it is just being used to setup aspects of the program 
+over time, right now it is just being used to setup aspects of the program
 for later refinement, and to inspire testing setup.  Sins may be committed here
 that are strictly forbidden elsewhere (like hard coding file names).
 
@@ -66,11 +66,19 @@ if args.install:
         "host": master_controller.config['database']['host'],
         "raise_on_warnings": False
     }
-    
-    master_controller.database = master_controller.create_database(database_name=master_controller.config['database']['main_database'], 
-                                                                    connection_settings=settings, 
+
+    master_controller.database = master_controller.create_database(database_name=master_controller.config['database']['main_database'],
+                                                                    connection_settings=settings,
                                                                     db_type = "system")
     master_controller.logger.info("Master Database Created.")
-    
+    master_controller.user_create(session = None,
+                                  parameters={'name':'admin',
+                                         'email':'admin@example.com',
+                                         'password': 'admin',
+                                         'admin': 1,
+                                         'enabled':1
+                                         },
+                                  bypass=True)
+
 master_controller.setup_web_interface()
 master_controller.start_interface()

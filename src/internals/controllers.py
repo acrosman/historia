@@ -70,12 +70,12 @@ class HistoriaCoreController(object):
                     },
                     'create': {
                         'parameters':   ['name', 'password', 'email', 'enabled', 'admin'],
-                        'function':     self.user_create, 
+                        'function':     self.user_create,
                         'type':         'POST'
                     },
                     'edit': {
                         'parameters':   ['id', 'name', 'password', 'email', 'enabled', 'admin'],
-                        'function':     self.user_edit,  
+                        'function':     self.user_edit,
                         'type':         'POST'
                     },
                     'delete': {
@@ -184,14 +184,14 @@ class HistoriaCoreController(object):
         self.logger.info("Starting interface.")
         self.interface.startup(self)
 
-    def process_request(self, request_handler, session, object, request,
+    def process_request(self, request_handler, session, target, request,
                         parameters):
         """Process requests from a request_handler and send back the results"""
-        
-        self.logger.debug("Processing request handler: {0} for {1}. Object: {2} Request: {3} Parameters: {4}".format(
-                                request_handler, session, object, request, parameters))
-        
-        if object not in self.routers:
+
+        self.logger.debug("Processing request handler: {0} for {1}. Target: {2} Request: {3} Parameters: {4}".format(
+                                request_handler, session, target, request, parameters))
+
+        if target not in self.routers:
             request_handler.send_error(404, "Requested Resource not found")
             return
 
@@ -202,15 +202,15 @@ class HistoriaCoreController(object):
         try:
             r = request.split('/')
             result = None
-            if object == 'system':
+            if target == 'system':
                 # Check to see we can found the router and if the request type matches router
-                if self.routers[object][r[0]][r[1]]['type'] == request_handler.command:
-                    result = self.routers[object][r[0]][r[1]]['function'](session,
+                if self.routers[target][r[0]][r[1]]['type'] == request_handler.command:
+                    result = self.routers[target][r[0]][r[1]]['function'](session,
                                                                     parameters)
                 else:
                     self.logger.error("Invalid System Request Type: {0} must be a {1}".format(request, request_handler.command))
                     request_handler.send_error(403, "Invalid System Request Type: {0} must be a {1}".format(request, request_handler.command))
-            elif object == 'database':
+            elif target == 'database':
                 # we'll need to extract the IDs and use them.
                 db_id = r[0]
                 command = r[1]
@@ -223,13 +223,13 @@ class HistoriaCoreController(object):
                 request_handler.send_record(session, {'Response': result})
             else:
                 request_handler.send_record(session, result)
-        
+
         except (InvalidPermissionsError, InvalidSessionError) as err:
             request_handler.send_error(403, "You do not have the access required to complete this request.")
         except InvalidParametersError as err:
             request_handler.send_error(404, "Invalid Parameters for this request.")
         except Exception as err:
-            self.logger.error("Error handling request: {0}:{1} with {2} for {3}. Error: {4}".format(object, request, parameters, session.id, err))
+            self.logger.error("Error handling request: {0}:{1} with {2} for {3}. Error: {4}".format(target, request, parameters, session.id, err))
             request_handler.send_error(500, "General Error processing request")
 
     def process_login(self, session, parameters):
@@ -439,59 +439,61 @@ class HistoriaCoreController(object):
                 base_dict[key] = update_dict[key]
 
         return base_dict
-    
-    
-    def user_create(self, session, parameters):
+
+
+    def user_create(self, session, parameters, bypass=False):
         """Used for creating new users."""
-        
-        # Check for user
-        if not hasattr(session, '_user'):
-            self.logger.error('Current session has no assicated user: {0}'.format(session.id))
-            raise InvalidSessionError("Current session has no assicated user: {0}".format(session.id))
-        
-        # Verify the user is an admin
-        if not session._user.admin:
-            self.logger.notice('User {0} [{1}], attempted to create a new user.'.format(session._user.name, session._user.id))
-            raise InvalidPermissionsError("Must have admin rights to create users.")
-        
+
+        # this should only be used during install.
+        if not bypass:
+            # Check for user
+            if not hasattr(session, '_user'):
+                self.logger.error('Current session has no assicated user: {0}'.format(session.id))
+                raise InvalidSessionError("Current session has no assicated user: {0}".format(session.id))
+
+            # Verify the user is an admin
+            if not session._user.admin:
+                self.logger.notice('User {0} [{1}], attempted to create a new user.'.format(session._user.name, session._user.id))
+                raise InvalidPermissionsError("Must have admin rights to create users.")
+
         # Verify required parameters were provided
         for param in self.routers['system']['user']['create']['parameters']:
             if param not in parameters:
                 self.logger.info("Attempt to create user without setting {0}".format(param))
                 raise InvalidParametersError("No {0} provided when creating new user".format(param))
-        
+
         new_user = user.HistoriaUser(self.database)
-        
-        return self._mod(new_user, parameters)
-        
+
+        return self._mod_user(new_user, parameters)
+
     def user_edit(self, session, parameters):
         """Used for editing users."""
-        
+
         # Check for current user
         if not hasattr(session, '_user'):
             self.logger.error('Current session has no assicated user: {0}'.format(session.id))
             raise InvalidSessionError("Current session has no assicated user: {0}".format(session.id))
-        
+
         for param in self.routers['system']['user']['edit']['parameters']:
             if param not in parameters:
                 self.logger.info("Attempt to create user without setting {0}".format(param))
                 raise InvalidParametersError("No {0} provided when creating new user".format(param))
-                
+
         # Verify current user is admin or editing self
         if not session._user.admin and session._user.id != parameters['id']:
             self.logger.notice('User {0} [{1}], attempted to edit another user ({2}).'.format(session._user.name, session._user.id, parameters['id']))
             raise InvalidPermissionsError("User {0} attempted to edit user with ID {1}".format(session._user.name, parameters['id']))
-        
+
         edit_user = user.HistoriaUser(self.database)
-        
+
         try:
             edit_user.load(parameters['id'])
         except database.exceptions.DataLoadError as err:
             self.logger.error('Unable to load user {0}'.format(parameters['id']))
             raise InvalidParametersError('Unable to load user {0}'.format(parameters['id']))
-        
+
         return self._mod_user(edit_user, parameters)
-        
+
     def _mod_user(self, mod_user, parameters):
         """Helper function for user create and edit."""
         try:
@@ -508,28 +510,28 @@ class HistoriaCoreController(object):
         except database.exceptions.HistoriaDataException as err:
             self.logger.info("Database error while creating new user: {0}".format(err))
             raise InvalidParametersError("Error creating new user")
-        
-    
+
+
     def user_delete(self, session, parameters):
         """Used for deleting users."""
-        
+
         # Check for user
         if not hasattr(session, '_user'):
             self.logger.error('Current session has no assicated user: {0}'.format(session.id))
             raise InvalidSessionError("Current session has no assicated user: {0}".format(session.id))
-        
+
         # Verify the user is an admin
         if not session._user.admin:
             self.logger.notice('User {0} [{1}], attempted to create a new user.'.format(session._user.name, session._user.id))
             raise InvalidPermissionsError("Must have admin rights to create users.")
-        
+
         # Verify required parameters were provided
         for param in self.routers['system']['user']['delete']['parameters']:
             if param not in parameters:
                 self.logger.info("Attempt to delete user without required value: {0}".format(param))
                 raise InvalidParametersError("No {0} provided when deleting user".format(param))
-        
-        
+
+
         del_user = user.HistoriaUser(self.database)
 
         try:
@@ -537,25 +539,25 @@ class HistoriaCoreController(object):
         except database.exceptions.DataLoadError as err:
             self.logger.error('Unable to find user {0} for delete'.format(parameters['id']))
             raise InvalidParametersError('Unable to find user {0} for delete'.format(parameters['id']))
-        
+
         del_user.delete()
-        
+
         return del_user.id == -1
-        
-        
+
+
     def user_info(self, session, parameters):
         """Used for getting user info."""
-        
+
         # Check for user
         if not hasattr(session, '_user'):
             self.logger.error('Current session has no assicated user: {0}'.format(session.id))
             raise InvalidSessionError("Current session has no assicated user: {0}".format(session.id))
-        
+
         # Check for an ID to test
         if 'id' not in parameters:
             self.logger.error('No ID provided when requesting user information')
             raise InvalidParametersError("No ID provided when requesting user information")
-        
+
         users = []
         for uid in parameters['id']:
             if uid == session._user.id:
@@ -570,6 +572,5 @@ class HistoriaCoreController(object):
             else:
                 self.logger.notice('User {0} [{1}], attempted to get info about another user ({2}).'.format(session._user.name, session._user.id, parameters['id']))
                 raise InvalidPermissionsError("User {0} cannot get information about user with ID {1}".format(session._user.name, parameters['id']))
-        
+
         return users
-        

@@ -32,14 +32,14 @@ from .exceptions import *
 
 
 class HistoriaSession(HistoriaRecord):
-    
+
     type_label        = "Historia Session"
     machine_type      = "historia_session"
     _table_fields      = {'sessionid': {
                                 'type':       'varchar',
                                 'length': '36',
                                 'allow_null': False,
-                                'index':      { 'type':'BASIC', 'fields': ('sessionid',)},
+                                'index':      { 'type':'UNIQUE', 'fields': ('sessionid',)},
                                 'order': 1
                             },
                             'userid': {
@@ -71,13 +71,13 @@ class HistoriaSession(HistoriaRecord):
                         }
     # The table fields here are just present for testing and are not expected to be used
     # Fields are defined as follows (this should get documented someplace better)
-    # _table_fields = {'field_name': {'type': [type_name], 
-    #                                'length': [as_needed_by_type], 
+    # _table_fields = {'field_name': {'type': [type_name],
+    #                                'length': [as_needed_by_type],
     #                                'signed': [TRUE/FALSE]
     #                                'allow_null': [TRUE/FALSE],
     #                                'default': [default value or NULL or AUTO_INCREMENT],
     #                                'update_timestamp': [TRUE/FALSE on timestamp field only],
-    #                                'index' : {'type' : [PRIMARY/UNIQUE/BASIC], 
+    #                                'index' : {'type' : [PRIMARY/UNIQUE/BASIC],
     #                                           'name' : [Optional name],
     #                                           'fields': [List, of, fields]}
     #                }}
@@ -97,30 +97,30 @@ class HistoriaSession(HistoriaRecord):
         if self.sessionid == None:
             return True
         else:
-            try: 
+            try:
                 if self.machine_type == other.machine_type:
                     return self.sessionid != other.sessionid
                 else:
                     return True
             except AttritbuteError:
                 return True
-    
-    
+
+
     def new_id(self):
         self.sessionid = str(uuid.UUID(bytes=ssl.RAND_bytes(16)))
         return self.sessionid
-    
+
     # Overloaded to make sure we update the last_seen stamp
     def save(self):
         self.last_seen = datetime.datetime.now()
         super().save()
-    
+
     # Overloaded to make sure we get the right settings without ID in use
     def load(self, recordID):
         super().load(recordID)
         self._id = self.sessionid
         self._dirty = False
-    
+
     # Overloaded since session doesn't use primary key.
     def _generate_select_SQL(self, session_id):
 
@@ -128,7 +128,7 @@ class HistoriaSession(HistoriaRecord):
         statement = "SELECT * FROM `{0}` WHERE `sessionid` = %({1})s".format(self.machine_type, 'sessionid')
 
         return (statement, fields)
-        
+
     # Overloaded since session doesn't use primary key.
     def _generate_update_SQL(self):
 
@@ -140,7 +140,7 @@ class HistoriaSession(HistoriaRecord):
         for field in self._table_fields:
             if 'default' not in self._table_fields[field]:
                 self._table_fields[field]['default'] = None
-            
+
             if 'index' in self._table_fields[field]:
                 if self._table_fields[field]['index']['type'] == 'PRIMARY':
                     primary = field
@@ -159,7 +159,7 @@ class HistoriaSession(HistoriaRecord):
 
         return (statement, fields)
 
-    
+
 
 if __name__ == '__main__':
     import unittest
